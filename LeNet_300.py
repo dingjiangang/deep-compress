@@ -35,6 +35,15 @@ def model(_X, _W, _bias):
     output = tf.add(tf.matmul(layer_2, _W['out']) , _bias['out'])
     return output
 
+def model_compression(_X, _wC_tf, _biasC_tf):
+    # Hidden layer with tanh activation
+    layer_1 = tf.nn.tanh(tf.add(tf.matmul(_X, _wC_tf['fc1']), _biasC_tf['fc1']))  
+    # Hidden layer with tanh activation
+    layer_2 = tf.nn.tanh(tf.add(tf.matmul(layer_1, _wC_tf['fc2']), _biasC_tf['fc2']))  
+    # output without any activation
+    output = tf.add(tf.matmul(layer_2, _wC_tf['out']) , _biasC_tf['out'])
+    return output_compression
+
 
 # Store layers weight & bias
 W = {
@@ -51,6 +60,9 @@ bias = {
 
 # Construct model
 output = model(x, W, bias)
+
+# compression output
+output_compression = model_compression(_X, _wC_tf, _biasC_tf)
 # Define loss and optimizer
 # Softmax loss
 loss = tf.reduce_mean(
@@ -164,7 +176,11 @@ train = optimizer.minimize(
     grad_loss=None)
 
 correct_prediction = tf.equal(tf.argmax(output, 1), tf.argmax(y, 1))
+correct_prediction_compression = tf.equal(tf.argmax(output_compression, 1), tf.argmax(y, 1))
+
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+accuracy_compression = tf.reduce_mean(tf.cast(correct_prediction_compression, tf.float32))
+
 saver = tf.train.Saver()
 
 train_L_step = optimizer.minimize(
@@ -304,7 +320,8 @@ with tf.Session() as sess:
 						   		 y: y_batch})
 				print('step {}, training accuracy {}' .format(i, train_accuracy))
 
-			
+			###################################################################
+			####################### training batch in L #######################
 			# train on batch
 			feed_dict = {x: X_batch,
 						 y: y_batch,
@@ -327,10 +344,12 @@ with tf.Session() as sess:
 			# reference weight and bias
 			w_bar = sess.run(W)
 			bias_bar = sess.run(bias)
-		
-		print('epoch {} and test accuracy {}' .format(j, accuracy.eval(
+		######################################################################
+		####################### accuracy using w #############################
+		print('epoch {} and test accuracy using w {}' .format(j, accuracy.eval(
 			feed_dict={x: data.validation.images, 
-					   y: data.validation.labels})))		
+					   y: data.validation.labels})))
+
 		#######################################################################
 		######## C Step #######################################################
 		#######################################################################
@@ -349,12 +368,24 @@ with tf.Session() as sess:
 			Z[layer] = kmeans[layer].labels_
 			# quantize reference net
 			wC[layer]= C[layer][Z[layer]]
-		###################################################################
-		####################### reshape weights ###########################
+		######################################################################
+		####################### reshape weights ##############################
 		for layer, _ in w_bar.items():
 			wC_reshape[layer] = wC[layer][0:w_bar[layer].size].reshape(w_bar[layer].shape)
 			biasC[layer] = wC[layer][w_bar[layer].size:].reshape(-1)
 		
+		######################################################################
+		####################### accuracy using wc ############################
+		print('epoch {} and test accuracy using wc {}' 
+						.format(j, accuracy_compression.eval(
+							feed_dict={x: data.validation.images, 
+									   y: data.validation.labels,
+									   wC_tf['fc1']: wC_reshape['fc1'],
+									   wC_tf['fc2']: wC_reshape['fc2'],
+									   wC_tf['out']: wC_reshape['out'],
+									   biasC_tf['fc1']: biasC['fc1'],
+									   biasC_tf['fc2']: biasC['fc2'],
+									   biasC_tf['out']: biasC['out']})))
 		#######################################################################
 		############################ update lambda ############################
 		for layer, _ in w_bar.items():
