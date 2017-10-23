@@ -4,7 +4,7 @@
 #$ -cwd
 #$ -N myjob
 #$ -j y
-#$ -o hello.qlog
+#$ -o compress.qlog
 #$ -l mem_free=64G
 #$ -pe smp 20
 #$ -V
