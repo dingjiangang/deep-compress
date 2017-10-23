@@ -178,7 +178,7 @@ correct_prediction = tf.equal(tf.argmax(output, 1), tf.argmax(y, 1))
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
 # compression output
-output_compression = model_compression(X, wC_tf, biasC_tf)
+output_compression = model_compression(x, wC_tf, biasC_tf)
 correct_prediction_compression = tf.equal(tf.argmax(output_compression, 1), tf.argmax(y, 1))
 accuracy_compression = tf.reduce_mean(tf.cast(correct_prediction_compression, tf.float32))
 
