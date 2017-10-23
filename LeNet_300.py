@@ -257,7 +257,7 @@ with tf.Session() as sess:
 					 momentum_tf: momentum}
 		train.run(feed_dict)
 	
-	save_path = saver.save(sess, "./reference_net_final.ckpt")
+	save_path = saver.save(sess, "./model/reference_net_final.ckpt")
 	# reference weight and bias
 	w_bar = sess.run(W)
 	bias_bar = sess.run(bias)
@@ -332,7 +332,7 @@ with tf.Session() as sess:
 			bias_init_placeholder['fc2']: bias_bar['fc2'],
 			bias_init_placeholder['out']: bias_bar['out']
 		}
-		sess.run([w_init,bias_init])
+		sess.run([w_init,bias_init], feed_dict=feed_dict)
 	for j in range(LC_epoches):
 		print('L step {} : ' .format(j))
 		# adjust mu
@@ -442,7 +442,7 @@ with tf.Session() as sess:
 		if norm_compression < 0.001:
 			break
 
-	save_path = saver.save(sess, "./compressed_net_final.ckpt")
+	save_path = saver.save(sess, "./model/compressed_net_final.ckpt")
 
 
 
