@@ -91,6 +91,29 @@ lamda_bias_tf = {
     'out': tf.placeholder("float", [n_classes])
 }
 
+w_init_placeholder = {
+    'fc1': tf.placeholder("float", [n_input, n_hidden_1]),
+    'fc2': tf.placeholder("float", [n_hidden_1, n_hidden_2]),
+    'out': tf.placeholder("float", [n_hidden_2, n_classes])
+}
+bias_init_placeholder = {
+	'fc1': tf.placeholder("float", [n_hidden_1]),
+    'fc2': tf.placeholder("float", [n_hidden_2]),
+    'out': tf.placeholder("float", [n_classes])
+}
+
+w_init = {
+ 	'fc1' : W['fc1'].assign(w_init_placeholder['fc1']),
+ 	'fc2' : W['fc2'].assign(w_init_placeholder['fc2']),
+ 	'out' : W['out'].assign(w_init_placeholder['out'])
+}
+
+bias_init = {
+ 	'fc1' : bias['fc1'].assign(bias_init_placeholder['fc1']),
+ 	'fc2' : bias['fc2'].assign(bias_init_placeholder['fc2']),
+ 	'out' : bias['out'].assign(bias_init_placeholder['out'])
+}
+
 norm_tf = tf.norm( W['fc1'] - wC_tf['fc1'] - lamda_tf['fc1'] / mu_tf ,ord='euclidean') \
 	    + tf.norm( W['fc2'] - wC_tf['fc2'] - lamda_tf['fc2'] / mu_tf ,ord='euclidean') \
 	    + tf.norm( W['out'] - wC_tf['out'] - lamda_tf['out'] / mu_tf,ord='euclidean') \
@@ -194,12 +217,13 @@ train_L_step = optimizer.minimize(
     name='train_L_step',
     grad_loss=None)
 
+init = tf.global_variables_initializer()
 
 ###############################################################################
 ######## training data and neural net architecture with weights w #############
 ###############################################################################
 with tf.Session() as sess:
-	sess.run(tf.global_variables_initializer())
+	sess.run(init)
 	for i in range(total_minibatches):
 		index_minibatch = i % num_minibatches_data
 		epoch = i // num_minibatches_data		
@@ -291,8 +315,24 @@ mu_0 = 9.75e-5
 a = 1.1
 max_iter_each_L_step = 2000
 LC_epoches = 30
-with tf.Session() as sess:
-	sess.run(tf.global_variables_initializer())
+random_w_init = 0 # 0: random init, 1 if init with reference net
+with tf.Session() as sess: 
+	###########################################################################
+	######## Initilize weights and bias #######################################
+	if random_w_init:
+		# initilize weights and bias randomly
+		sess.run(init)
+	else:
+		# initilize weights and bias with reference net
+		feed_dict = {
+			w_init_placeholder['fc1']: w_bar['fc1'],
+			w_init_placeholder['fc2']: w_bar['fc2'],
+			w_init_placeholder['out']: w_bar['out'],
+			bias_init_placeholder['fc1']: bias_bar['fc1'],
+			bias_init_placeholder['fc2']: bias_bar['fc2'],
+			bias_init_placeholder['out']: bias_bar['out']
+		}
+		sess.run([w_init,bias_init])
 	for j in range(LC_epoches):
 		print('L step {} : ' .format(j))
 		# adjust mu
