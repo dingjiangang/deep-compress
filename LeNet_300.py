@@ -125,7 +125,7 @@ loss_L_step =  loss + regularizer
 # Batch size: 512
 minibatch = 512
 # Total minibatches
-total_minibatches = 1
+total_minibatches = 100000
 # number of minibatches in data
 num_minibatches_data = data.train.images.shape[0] // minibatch
 
