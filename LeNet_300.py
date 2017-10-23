@@ -273,18 +273,18 @@ momentum = 0.95
 mu_0 = 9.75e-5
 a = 1.1
 max_iter_each_L_step = 2000
-L_epoches = 30
-for j in range(L_epoches):
-	print('L step {} : ' .format(j))
-	# adjust mu
-	mu = mu_0 * ( a ** j )
-	# adjust learning rate
-	lr = 0.1 * ( 0.99 ** j )
-	###########################################################################
-	######## L Step ###########################################################
-	###########################################################################
-	with tf.Session() as sess:
-		sess.run(tf.global_variables_initializer())
+LC_epoches = 30
+with tf.Session() as sess:
+	sess.run(tf.global_variables_initializer())
+	for j in range(LC_epoches):
+		print('L step {} : ' .format(j))
+		# adjust mu
+		mu = mu_0 * ( a ** j )
+		# adjust learning rate
+		lr = 0.1 * ( 0.99 ** j )
+		#######################################################################
+		######## L Step #######################################################
+		#######################################################################	
 		# variable.initialized_value() ?
 		for i in range(max_iter_each_L_step):
 			index_minibatch = i % num_minibatches_data
@@ -304,10 +304,7 @@ for j in range(L_epoches):
 						   		 y: y_batch})
 				print('step {}, training accuracy {}' .format(i, train_accuracy))
 
-			if index_minibatch == 0:
-				print('epoch {} and test accuracy {}' .format(epoch, accuracy.eval(
-					feed_dict={x: data.validation.images, 
-							   y: data.validation.labels})))
+			
 			# train on batch
 			feed_dict = {x: X_batch,
 						 y: y_batch,
@@ -327,49 +324,54 @@ for j in range(L_epoches):
 						 lamda_bias_tf['fc2']: lamda_bias['fc2'],
 						 lamda_bias_tf['out']: lamda_bias['out']}
 			train_L_step.run(feed_dict)
+			# reference weight and bias
+			w_bar = sess.run(W)
+			bias_bar = sess.run(bias)
 		
-		save_path = saver.save(sess, "./compressed_net_final.ckpt")
-		# reference weight and bias
-		w_bar = sess.run(W)
-		bias_bar = sess.run(bias)
-	###########################################################################
-	######## C Step ###########################################################
-	###########################################################################
-	# flatten the weights and concatenate bias for each layer
-	w = {}
-	for layer, _ in w_bar.items():
-		wf = w_bar[layer].flatten() - lamda[layer].flatten() / mu
-		bf = bias_bar[layer] - lamda_bias[layer] / mu
-		wf = np.concatenate( (wf , bf) , axis=0)
-		w[layer] = wf.reshape(-1 , 1)
-
-	# Kmeans
-	for layer, _ in w.items():
-		kmeans[layer] = KMeans(n_clusters=k, random_state=0).fit(w[layer])
-		C[layer] = kmeans[layer].cluster_centers_ 
-		Z[layer] = kmeans[layer].labels_
-		# quantize reference net
-		wC[layer]= C[layer][Z[layer]]
+		print('epoch {} and test accuracy {}' .format(j, accuracy.eval(
+			feed_dict={x: data.validation.images, 
+					   y: data.validation.labels})))		
 		#######################################################################
-		####################### reshape weights ###############################
-	for layer, _ in w_bar.items():
-		wC_reshape[layer] = wC[layer][0:w_bar[layer].size].reshape(w_bar[layer].shape)
-		biasC[layer] = wC[layer][w_bar[layer].size:].reshape(-1)
-	
-	###########################################################################
-	############################ update lambda ################################
-	for layer, _ in w_bar.items():
-		lamda[layer] = lamda[layer] - mu * (w_bar[layer] - wC_reshape[layer])
-		lamda_bias[layer] = lamda_bias[layer] - mu * (bias_bar[layer] - biasC[layer])
+		######## C Step #######################################################
+		#######################################################################
+		# flatten the weights and concatenate bias for each layer
+		w = {}
+		for layer, _ in w_bar.items():
+			wf = w_bar[layer].flatten() - lamda[layer].flatten() / mu
+			bf = bias_bar[layer] - lamda_bias[layer] / mu
+			wf = np.concatenate( (wf , bf) , axis=0)
+			w[layer] = wf.reshape(-1 , 1)
 
-	norm_compression = 0
-	for layer, _ in w_bar.items():
-		norm_compression = LA.norm(w[layer] - wC[layer])
+		# Kmeans
+		for layer, _ in w.items():
+			kmeans[layer] = KMeans(n_clusters=k, random_state=0).fit(w[layer])
+			C[layer] = kmeans[layer].cluster_centers_ 
+			Z[layer] = kmeans[layer].labels_
+			# quantize reference net
+			wC[layer]= C[layer][Z[layer]]
+		###################################################################
+		####################### reshape weights ###########################
+		for layer, _ in w_bar.items():
+			wC_reshape[layer] = wC[layer][0:w_bar[layer].size].reshape(w_bar[layer].shape)
+			biasC[layer] = wC[layer][w_bar[layer].size:].reshape(-1)
+		
+		#######################################################################
+		############################ update lambda ############################
+		for layer, _ in w_bar.items():
+			lamda[layer] = lamda[layer] - mu * (w_bar[layer] - wC_reshape[layer])
+			lamda_bias[layer] = lamda_bias[layer] - mu * (bias_bar[layer] - biasC[layer])
 
-	print('norm of compression: {} ' .format(norm_compression) )
+		norm_compression = 0
+		for layer, _ in w_bar.items():
+			norm_compression = LA.norm(w[layer] - wC[layer])
 
-	if norm_compression < 0.001:
-		break
+		print('norm of compression: {} ' .format(norm_compression) )
+
+		if norm_compression < 0.001:
+			break
+
+	save_path = saver.save(sess, "./compressed_net_final.ckpt")
+
 
 
 
