@@ -323,6 +323,7 @@ with tf.Session() as sess:
 		# initilize weights and bias randomly
 		sess.run(init)
 	else:
+		sess.run(init)
 		# initilize weights and bias with reference net
 		feed_dict = {
 			w_init_placeholder['fc1']: w_bar['fc1'],
