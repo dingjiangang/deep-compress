@@ -41,7 +41,7 @@ def model_compression(_X, _wC_tf, _biasC_tf):
     # Hidden layer with tanh activation
     layer_2 = tf.nn.tanh(tf.add(tf.matmul(layer_1, _wC_tf['fc2']), _biasC_tf['fc2']))  
     # output without any activation
-    output = tf.add(tf.matmul(layer_2, _wC_tf['out']) , _biasC_tf['out'])
+    output_compression = tf.add(tf.matmul(layer_2, _wC_tf['out']) , _biasC_tf['out'])
     return output_compression
 
 
