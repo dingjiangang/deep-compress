@@ -61,8 +61,6 @@ bias = {
 # Construct model
 output = model(x, W, bias)
 
-# compression output
-output_compression = model_compression(_X, _wC_tf, _biasC_tf)
 # Define loss and optimizer
 # Softmax loss
 loss = tf.reduce_mean(
@@ -176,9 +174,12 @@ train = optimizer.minimize(
     grad_loss=None)
 
 correct_prediction = tf.equal(tf.argmax(output, 1), tf.argmax(y, 1))
-correct_prediction_compression = tf.equal(tf.argmax(output_compression, 1), tf.argmax(y, 1))
 
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+
+# compression output
+output_compression = model_compression(X, wC_tf, biasC_tf)
+correct_prediction_compression = tf.equal(tf.argmax(output_compression, 1), tf.argmax(y, 1))
 accuracy_compression = tf.reduce_mean(tf.cast(correct_prediction_compression, tf.float32))
 
 saver = tf.train.Saver()
