@@ -831,7 +831,6 @@ with tf.Session() as sess:
 		for layer, _ in w_bar.items():
 			wC_reshape[layer] = wC[layer][0:w_bar[layer].size].reshape(w_bar[layer].shape)
 			biasC[layer] = wC[layer][w_bar[layer].size:].reshape(-1)
-			C[layer] = C[layer].reshape(-1)
 		
 		######################################################################
 		####################### accuracy using wc ############################
