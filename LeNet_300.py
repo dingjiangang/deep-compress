@@ -48,6 +48,10 @@ k = int(ap.parse_args().k)
 from sklearn.cluster import KMeans
 from numpy import linalg as LA
 
+print('----------------------------------------------')
+print('Compression Algorithm for k = {}' .format(k))
+print('----------------------------------------------')
+
 # input and output shape
 n_input   = data.train.images.shape[1]  # here MNIST data input (28,28)
 n_classes = data.train.labels.shape[1]  # here MNIST (0-9 digits)
@@ -343,7 +347,9 @@ init = tf.global_variables_initializer()
 ###############################################################################
 ######## training data and neural net architecture with weights w #############
 ###############################################################################
-
+print('----------------------------------------------')
+print('TRAINGING REFERENCE NET for k = {}' .format(k))
+print('----------------------------------------------')
 ################### TO SAVE TRAINING AND TEST LOSS AND ERROR ##################
 ################### FOR REFERENCE NET #########################################
 num_epoch_ref = total_minibatches // num_minibatches_data
@@ -377,12 +383,6 @@ with tf.Session() as sess:
 		end_index   = (index_minibatch+1) * minibatch
 		X_batch = X_train[start_index:end_index]
 		y_batch = y_train[start_index:end_index]
-		
-		# if i % 100 == 0:
-		# 	train_accuracy = accuracy.eval(
-		# 		feed_dict={x: X_batch, 
-		# 				   y: y_batch})
-		# 	print('step {}, training accuracy {}' .format(i, train_accuracy))
 
 		############### LOSS AND ACCURACY EVALUATION ##########################
 		if index_minibatch == 0:
@@ -404,6 +404,13 @@ with tf.Session() as sess:
 			test_loss_ref[epoch] = test_loss
 			test_error_ref[epoch] = 1 - test_accuracy
 
+			print('step: {}, train loss: {}, train acuracy: {}' \
+				.format(i, train_loss, train_accuracy) )
+			print('step: {}, val loss: {}, val acuracy: {}' \
+				.format(i, val_loss, val_accuracy) )
+			print('step: {}, test loss: {}, test acuracy: {}' \
+				.format(i, test_loss, test_accuracy) )
+				
 		
 		train.run(feed_dict = { x: X_batch,
 					 			y: y_batch,
@@ -453,6 +460,10 @@ model_file_path = './model/' + model_file_name
 ########################## DC = Kmeans(w_bar) #################################
 ###############################################################################
 ####################### reshape weights #######################################
+print('----------------------------------------------')
+print('DC NET for k = {}' .format(k))
+print('----------------------------------------------')
+
 wC_reshape = {}
 biasC = {}
 for layer, _ in w_bar.items():
@@ -494,11 +505,19 @@ with tf.Session() as sess:
 								feed_dict = feed_dict)
 	test_loss_DC= test_loss
 	test_error_DC = 1 - test_accuracy
+	print('val loss: {}, val acuracy: {}' \
+				.format(val_loss, val_accuracy) )
+	print('test loss: {}, test acuracy: {}' \
+				.format(test_loss, test_accuracy) )
+
 	save_path = saver.save(sess, model_file_path)
 
 ###############################################################################
 ############################## DC WITH RETRAINING #############################
 ###############################################################################
+print('----------------------------------------------')
+print('DC WITH RETRAINING for k = {}' .format(k))
+print('----------------------------------------------')
 
 Z_W_matrix = {}
 
@@ -568,12 +587,6 @@ with tf.Session() as sess:
 			momentum_tf: momentum
 		}
 		train_DC_ret_step.run(feed_dict = feed_dict)
-		# if i % 100 == 0:
-		# 	train_accuracy = accuracy.eval(
-		# 		feed_dict={x: X_batch, 
-		# 				   y: y_batch})
-		# 	print('step {}, training accuracy {}' .format(i, train_accuracy))
-
 		############### LOSS AND ACCURACY EVALUATION ##########################
 		if index_minibatch == 0:
 			train_loss, train_accuracy = \
@@ -595,6 +608,13 @@ with tf.Session() as sess:
 			sess.run([loss_DC_ret, accuracy_DC_ret], feed_dict = feed_dict)
 			test_loss_DC_ret[epoch] = test_loss
 			test_error_DC_ret[epoch] = 1 - test_accuracy
+
+			print('step: {}, train loss: {}, train acuracy: {}' \
+							.format(i, train_loss, train_accuracy) )
+			print('step: {}, val loss: {}, val acuracy: {}' \
+							.format(i, val_loss, val_accuracy) )
+			print('step: {}, test loss: {}, test acuracy: {}' \
+							.format(i, test_loss, test_accuracy) )
 
 		#train_loss_ref = sess.run(loss)
 		
@@ -673,6 +693,10 @@ with tf.Session() as sess:
 		#######################################################################
 		######## L Step #######################################################
 		#######################################################################	
+		print('----------------------------------------------')
+		print('L STEP #{} for k = {}' .format(j,k))
+		print('----------------------------------------------')
+
 		# variable.initialized_value() ?
 		for i in range(max_iter_each_L_step):
 			index_minibatch = i % num_minibatches_data
@@ -687,12 +711,6 @@ with tf.Session() as sess:
 			y_batch = y_train[start_index:end_index]
 		
 			epoch_train = i // 100
-			if i % 100 == 0:
-				train_accuracy = accuracy.eval(
-					feed_dict = {x: X_batch, 
-						   		 y: y_batch})
-				print('step {}, training accuracy {}' .format(i, train_accuracy))
-
 			###################################################################
 			####################### training batch in L #######################
 			# train on batch
@@ -716,15 +734,29 @@ with tf.Session() as sess:
 			train_L_step.run(feed_dict)
 			
 			if i % 100 == 0:
-				# train_accuracy = accuracy.eval(
-				# 	feed_dict = {x: X_batch, 
-				# 		   		 y: y_batch})
-				# print('step {}, training accuracy {}' .format(i, train_accuracy))
 				train_loss, train_accuracy = \
 				 		sess.run([loss_L_step, accuracy], feed_dict = feed_dict)
 				index = j*num_epoch_in_each_L_train+epoch_train
 				train_loss_L[index] = train_loss
 				train_error_L[epoch] = 1 - train_accuracy
+
+				feed_dict.update( { x: data.validation.images, 
+									y: data.validation.labels })
+				val_loss, val_accuracy = \
+					sess.run([loss_L_step, accuracy], feed_dict = feed_dict)
+
+				feed_dict.update( { x: data.test.images, 
+									y: data.test.labels })
+
+				test_loss, test_accuracy = \
+					sess.run([loss_L_step, accuracy], feed_dict = feed_dict)
+
+				print('step: {}, train loss: {}, train acuracy: {}' \
+							.format(i, train_loss, train_accuracy) )
+				print('step: {}, val loss: {}, val acuracy: {}' \
+							.format(i, val_loss, val_accuracy) )
+				print('step: {}, test loss: {}, test acuracy: {}' \
+							.format(i, test_loss, test_accuracy) )
 			# reference weight and bias
 			w_bar = sess.run(W)
 			bias_bar = sess.run(bias)
@@ -769,14 +801,16 @@ with tf.Session() as sess:
 		sess.run([loss_L_step, accuracy], feed_dict = feed_dict)
 		test_loss_L[j] = test_loss
 		test_error_L[j] = 1 - test_accuracy
-
-		# print('epoch {} and test accuracy using w {}' .format(j, accuracy.eval(
-		# 	feed_dict={x: data.validation.images, 
-		# 			   y: data.validation.labels})))
-
+		print('L step: {}, val loss: {}, val acuracy: {}' \
+							.format(j, val_loss, val_accuracy) )
+		print('L step: {}, test loss: {}, test acuracy: {}' \
+							.format(j, test_loss, test_accuracy) )
 		#######################################################################
 		######## C Step #######################################################
 		#######################################################################
+		print('----------------------------------------------')
+		print('C STEP #{} for k = {}' .format(j,k))
+		print('----------------------------------------------')
 		# flatten the weights and concatenate bias for each layer
 		w = {}
 		for layer, _ in w_bar.items():
@@ -830,17 +864,10 @@ with tf.Session() as sess:
 		sess.run([loss_compression, accuracy_compression], feed_dict = feed_dict)
 		test_loss_C[j]= test_loss
 		test_error_C[j] = 1 - test_accuracy
-
-		# print('epoch {} and test accuracy using wc {}' 
-		# 				.format(j, accuracy_compression.eval(
-		# 					feed_dict={x: data.validation.images, 
-		# 							   y: data.validation.labels,
-		# 							   wC_tf['fc1']: wC_reshape['fc1'],
-		# 							   wC_tf['fc2']: wC_reshape['fc2'],
-		# 							   wC_tf['out']: wC_reshape['out'],
-		# 							   biasC_tf['fc1']: biasC['fc1'],
-		# 							   biasC_tf['fc2']: biasC['fc2'],
-		# 							   biasC_tf['out']: biasC['out']})))
+		print('val loss: {}, val acuracy: {}' \
+							.format(val_loss, val_accuracy) )
+		print('test loss: {}, test acuracy: {}' \
+							.format(test_loss, test_accuracy) )
 		#######################################################################
 		############################ update lambda ############################
 		for layer, _ in w_bar.items():
@@ -861,6 +888,9 @@ with tf.Session() as sess:
 ###############################################################################
 ############################## LC WITH RETRAINING #############################
 ###############################################################################
+print('----------------------------------------------')
+print('LC with RETRAINING for k = {}' .format(k))
+print('----------------------------------------------')
 
 Z_W_matrix = {}
 
@@ -930,12 +960,6 @@ with tf.Session() as sess:
 			momentum_tf: momentum
 		}
 		train_DC_ret_step.run(feed_dict = feed_dict)
-		# if i % 100 == 0:
-		# 	train_accuracy = accuracy.eval(
-		# 		feed_dict={x: X_batch, 
-		# 				   y: y_batch})
-		# 	print('step {}, training accuracy {}' .format(i, train_accuracy))
-
 		############### LOSS AND ACCURACY EVALUATION ##########################
 		if index_minibatch == 0:
 			train_loss, train_accuracy = \
@@ -957,6 +981,13 @@ with tf.Session() as sess:
 			sess.run([loss_DC_ret, accuracy_DC_ret], feed_dict = feed_dict)
 			test_loss_LC_ret[epoch] = test_loss
 			test_error_LC_ret[epoch] = 1 - test_accuracy
+			
+			print('step: {}, train loss: {}, train acuracy: {}' \
+							.format(i, train_loss, train_accuracy) )
+			print('step: {}, val loss: {}, val acuracy: {}' \
+							.format(i, val_loss, val_accuracy) )
+			print('step: {}, test loss: {}, test acuracy: {}' \
+							.format(i, test_loss, test_accuracy) )
 
 		#train_loss_ref = sess.run(loss)
 		
