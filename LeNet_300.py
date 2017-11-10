@@ -451,6 +451,7 @@ for layer, _ in w.items():
 	# quantize reference net
 	wC[layer]= C[layer][Z[layer]]
 
+C_DC = C
 
 ################### TO SAVE DC MODEL ##################
 model_file_name = 'DC_model_k_' + str(k)
@@ -469,7 +470,6 @@ biasC = {}
 for layer, _ in w_bar.items():
 	wC_reshape[layer] = wC[layer][0:w_bar[layer].size].reshape(w_bar[layer].shape)
 	biasC[layer] = wC[layer][w_bar[layer].size:].reshape(-1)
-	# C[layer] = C[layer]
 
 with tf.Session() as sess:
 	sess.run(init)
@@ -998,26 +998,46 @@ with tf.Session() as sess:
 import dill
 results_file_name = 'dill_global_variables_k_' + str(k) + '.pkl'
 results_file_path = './results/' + results_file_name 
-dill.dump_session(results_file_path)
+with open(results_file_path, 'wb') as f:
+	dill.dump(k,f)
+	dill.dump(train_loss_ref,f)
+	dill.dump(train_error_ref,f)
+	dill.dump(val_loss_ref,f)
+	dill.dump(val_error_ref,f)
+	dill.dump(test_loss_ref,f)
+	dill.dump(test_error_ref,f)
+	dill.dump(C_DC,f)
+	dill.dump(val_loss_DC,f)
+	dill.dump(val_error_DC,f)
+	dill.dump(test_loss_DC,f)
+	dill.dump(test_error_DC,f)
+	dill.dump(train_loss_DC_ret,f)
+	dill.dump(train_error_DC_ret,f)
+	dill.dump(val_loss_DC_ret,f)
+	dill.dump(val_error_DC_ret,f)
+	dill.dump(test_loss_DC_ret,f)
+	dill.dump(test_error_DC_ret,f)
+	dill.dump(C_DC_ret,f)
+	dill.dump(train_loss_L,f)
+	dill.dump(train_error_L,f)
+	dill.dump(val_loss_L,f)
+	dill.dump(val_error_L,f)
+	dill.dump(test_loss_L,f)
+	dill.dump(test_error_L,f)
+	dill.dump(val_loss_C,f)
+	dill.dump(val_error_C,f)
+	dill.dump(test_loss_C,f)
+	dill.dump(test_error_C,f)
+	dill.dump(train_loss_LC_ret,f)
+	dill.dump(train_error_LC_ret,f)
+	dil.dump(val_loss_LC_ret,f)
+	dill.dump(val_error_LC_ret,f)
+	dill.dump(test_error_LC_ret,f)
+	dill.dump(test_error_LC_ret,f)
+	dill.dump(C_LC_ret,f)
+
 
 # dill.load_session(results_file_path)
-
-# with open(results_file_path, 'wb') as f:
-# 	pickle.dump(df_ref,f)
-# 	pickle.dump(df_DC,f)
-# 	pickle.dump(df_DC_retrain,f)
-# 	pickle.dump(df_LC,f)
-
-# results_file_name = 'data_k_' + str(k)
-# results_file_path = './results/' + data_file_name 
-
-# with open(results_file_path, 'rb') as f:
-# 	df_ref = pickle.load(f)
-# 	df_DC = pickle.load(f)
-# 	df_DC_retrain = pickle.load(f)
-# 	df_LC = pickle.load(f)
-
-
 
 
 
