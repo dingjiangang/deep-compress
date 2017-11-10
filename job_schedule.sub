@@ -14,4 +14,9 @@ export LD_LIBRARY_PATH=${CUDA_HOME}/lib64:$LD_LIBRARY_PATH
 
 module load anaconda3
 source activate jacobenv
-python LeNet_300.py 
+python LeNet_300.py 2
+python LeNet_300.py 4
+python LeNet_300.py 8
+python LeNet_300.py 16
+python LeNet_300.py 32
+python LeNet_300.py 64
