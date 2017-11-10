@@ -1030,7 +1030,7 @@ with open(results_file_path, 'wb') as f:
 	dill.dump(test_error_C,f)
 	dill.dump(train_loss_LC_ret,f)
 	dill.dump(train_error_LC_ret,f)
-	dil.dump(val_loss_LC_ret,f)
+	dill.dump(val_loss_LC_ret,f)
 	dill.dump(val_error_LC_ret,f)
 	dill.dump(test_error_LC_ret,f)
 	dill.dump(test_error_LC_ret,f)
