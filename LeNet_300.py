@@ -638,7 +638,7 @@ momentum = 0.95
 # mu parameters
 mu_0 = 9.75e-5
 a = 1.1
-max_iter_each_L_step = 2000
+max_iter_each_L_step = 200
 LC_epoches = 2
 random_w_init = 0 # 0: random init, 1 if init with reference net
 
