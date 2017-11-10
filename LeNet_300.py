@@ -281,7 +281,7 @@ loss_L_step =  loss + regularizer
 # Batch size: 512
 minibatch = 512
 # Total minibatches
-total_minibatches = 200
+total_minibatches = 100000
 # number of minibatches in data
 num_minibatches_data = data.train.images.shape[0] // minibatch
 
@@ -638,7 +638,7 @@ momentum = 0.95
 # mu parameters
 mu_0 = 9.75e-5
 a = 1.1
-max_iter_each_L_step = 200
+max_iter_each_L_step = 2000
 LC_epoches = 2
 random_w_init = 0 # 0: random init, 1 if init with reference net
 
