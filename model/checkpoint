@@ -1,0 +1,4 @@
+model_checkpoint_path: "DC_ret_model_k_4"
+all_model_checkpoint_paths: "reference_model_k_4"
+all_model_checkpoint_paths: "DC_model_k_4"
+all_model_checkpoint_paths: "DC_ret_model_k_4"
