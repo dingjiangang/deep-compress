@@ -6,6 +6,7 @@ data = input_MNIST_data.read_data_sets("./data/", one_hot=True)
 
 import numpy as np
 import sys
+import dill
 
 import pickle
 
