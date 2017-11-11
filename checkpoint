@@ -1,0 +1,3 @@
+model_checkpoint_path: "compressed_net_final.ckpt"
+all_model_checkpoint_paths: "reference_net_final.ckpt"
+all_model_checkpoint_paths: "compressed_net_final.ckpt"
