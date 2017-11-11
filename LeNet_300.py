@@ -537,6 +537,7 @@ for layer, _ in w_bar.items():
 	tempZ_mat[np.arange(tempZ.size), tempZ] = 1
 	Z_bias_matrix[layer] = tempZ_mat
 
+total_minibatches = 4000
 num_epoch_DC_ret = total_minibatches // num_minibatches_data
 epoch_DC_ret_vec = np.array(range(num_epoch_DC_ret+1)) 
 train_loss_DC_ret = np.zeros(num_epoch_DC_ret+1)
@@ -639,7 +640,7 @@ momentum = 0.95
 mu_0 = 9.75e-5
 a = 1.1
 max_iter_each_L_step = 2000
-LC_epoches = 2
+LC_epoches = 31
 random_w_init = 0 # 0: random init, 1 if init with reference net
 
 ################### TO SAVE TRAINING AND TEST LOSS AND ERROR ##################
@@ -909,6 +910,7 @@ for layer, _ in w_bar.items():
 	tempZ_mat[np.arange(tempZ.size), tempZ] = 1
 	Z_bias_matrix[layer] = tempZ_mat
 
+total_minibatches = 4000
 num_epoch_LC_ret = total_minibatches // num_minibatches_data
 epoch_LC_ret_vec = np.array(range(num_epoch_LC_ret+1)) 
 train_loss_LC_ret = np.zeros(num_epoch_LC_ret+1)
