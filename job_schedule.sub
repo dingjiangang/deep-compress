@@ -5,7 +5,7 @@
 #$ -N myjob
 #$ -j y
 #$ -o compress.qlog
-#$ -l mem_free=128G
+#$ -l mem_free=64G
 #$ -pe smp 20
 #$ -V
 export CUDA_HOME=/usr/local/cuda:/usr/local/cuda-8.0:/home/jrafatiheravi/src/cuda
