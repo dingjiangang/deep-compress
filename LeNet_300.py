@@ -537,7 +537,7 @@ for layer, _ in w_bar.items():
 	tempZ_mat[np.arange(tempZ.size), tempZ] = 1
 	Z_bias_matrix[layer] = tempZ_mat
 
-total_minibatches = 4000
+total_minibatches = 10000
 num_epoch_DC_ret = total_minibatches // num_minibatches_data
 epoch_DC_ret_vec = np.array(range(num_epoch_DC_ret+1)) 
 train_loss_DC_ret = np.zeros(num_epoch_DC_ret+1)
@@ -880,8 +880,8 @@ with tf.Session() as sess:
 
 		print('norm of compression: {} ' .format(norm_compression) )
 
-		if norm_compression < 0.001:
-			break
+		# if norm_compression < 0.001:
+		# 	break
 
 	save_path = saver.save(sess, model_file_path)
 
@@ -910,7 +910,7 @@ for layer, _ in w_bar.items():
 	tempZ_mat[np.arange(tempZ.size), tempZ] = 1
 	Z_bias_matrix[layer] = tempZ_mat
 
-total_minibatches = 4000
+total_minibatches = 10000
 num_epoch_LC_ret = total_minibatches // num_minibatches_data
 epoch_LC_ret_vec = np.array(range(num_epoch_LC_ret+1)) 
 train_loss_LC_ret = np.zeros(num_epoch_LC_ret+1)
