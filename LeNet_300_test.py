@@ -1018,7 +1018,7 @@ df_ref = pd.DataFrame({	'train_error_ref' : train_loss_ref,
 df_DC = pd.DataFrame({	'val_loss_DC': val_loss_DC,
 						'val_error_DC': val_error_DC,
 						'test_loss_DC': test_loss_DC,
-						'test_error_DC': test_error_DC})
+						'test_error_DC': test_error_DC}, index=[0])
 
 
 df_DC_ret = pd.DataFrame({	'val_loss_DC_ret': val_loss_DC_ret,
