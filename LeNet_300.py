@@ -377,7 +377,7 @@ with tf.Session() as sess:
 		# adjust learning rate
 		if i % learning_rate_stay_fixed == 0:
 			j = i // learning_rate_stay_fixed
-			lr = learning_rate_decay ** j
+			lr = 0.02 * learning_rate_decay ** j
 		# mini batch 
 		start_index = index_minibatch     * minibatch
 		end_index   = (index_minibatch+1) * minibatch
@@ -537,7 +537,7 @@ for layer, _ in w_bar.items():
 	tempZ_mat[np.arange(tempZ.size), tempZ] = 1
 	Z_bias_matrix[layer] = tempZ_mat
 
-total_minibatches = 10000
+total_minibatches = 20000
 num_epoch_DC_ret = total_minibatches // num_minibatches_data
 epoch_DC_ret_vec = np.array(range(num_epoch_DC_ret+1)) 
 train_loss_DC_ret = np.zeros(num_epoch_DC_ret+1)
@@ -568,7 +568,7 @@ with tf.Session() as sess:
 		# adjust learning rate
 		if i % learning_rate_stay_fixed == 0:
 			j = i // learning_rate_stay_fixed
-			lr = learning_rate_decay ** j
+			lr = 0.001 * learning_rate_decay ** j
 		# mini batch 
 		start_index = index_minibatch     * minibatch
 		end_index   = (index_minibatch+1) * minibatch
@@ -641,7 +641,7 @@ mu_0 = 9.75e-5
 a = 1.1
 max_iter_each_L_step = 2000
 LC_epoches = 31
-random_w_init = 0 # 0: random init, 1 if init with reference net
+random_w_init = 1 # 0: random init, 1 if init with reference net
 
 ################### TO SAVE TRAINING AND TEST LOSS AND ERROR ##################
 ################### FOR REFERENCE NET #########################################
@@ -690,7 +690,7 @@ with tf.Session() as sess:
 		# adjust mu
 		mu = mu_0 * ( a ** j )
 		# adjust learning rate
-		lr = 0.1 * ( 0.99 ** j )
+		lr = 0.01 * ( 0.99 ** j )
 		#######################################################################
 		######## L Step #######################################################
 		#######################################################################	
@@ -910,7 +910,7 @@ for layer, _ in w_bar.items():
 	tempZ_mat[np.arange(tempZ.size), tempZ] = 1
 	Z_bias_matrix[layer] = tempZ_mat
 
-total_minibatches = 10000
+total_minibatches = 20000
 num_epoch_LC_ret = total_minibatches // num_minibatches_data
 epoch_LC_ret_vec = np.array(range(num_epoch_LC_ret+1)) 
 train_loss_LC_ret = np.zeros(num_epoch_LC_ret+1)
@@ -941,7 +941,7 @@ with tf.Session() as sess:
 		# adjust learning rate
 		if i % learning_rate_stay_fixed == 0:
 			j = i // learning_rate_stay_fixed
-			lr = learning_rate_decay ** j
+			lr = 0.001 * learning_rate_decay ** j
 		# mini batch 
 		start_index = index_minibatch     * minibatch
 		end_index   = (index_minibatch+1) * minibatch
