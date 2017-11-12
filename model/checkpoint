@@ -1,0 +1,6 @@
+model_checkpoint_path: "LC_ret_model_k_64"
+all_model_checkpoint_paths: "reference_model_k_64"
+all_model_checkpoint_paths: "DC_model_k_64"
+all_model_checkpoint_paths: "DC_ret_model_k_64"
+all_model_checkpoint_paths: "LC_model_k_64"
+all_model_checkpoint_paths: "LC_ret_model_k_64"
