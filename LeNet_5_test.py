@@ -380,9 +380,9 @@ with tf.Session() as sess:
 		if i % learning_rate_stay_fixed == 0:
 			j = i // learning_rate_stay_fixed
 			if k > 8:
-				lr = 0.01 * 0.98 ** j
+				lr = 0.005 * 0.98 ** j
 			else:
-				lr = 0.01 * 0.98 ** j
+				lr = 0.005 * 0.98 ** j
 		# mini batch 
 		start_index = index_minibatch     * minibatch
 		end_index   = (index_minibatch+1) * minibatch
