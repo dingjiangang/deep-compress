@@ -5,13 +5,20 @@ import pickle
 # Set up argument parser
 ap = argparse.ArgumentParser()
 # Single positional argument, nargs makes it optional
-ap.add_argument('kk', nargs='?', default=2)
+ap.add_argument('k', nargs='?', default=2)
 # codebook size
-kk = int(ap.parse_args().kk)
+k = int(ap.parse_args().k)
 
-import dill
-results_file_name = 'dill_global_variables_k_' + str(kk) + '.pkl'
-results_file_path = './results/' + results_file_name 
-
-dill.load_session(results_file_path)
-print(val_loss_ref)
+import pickle
+file_pickle = './results/results_pickle_k_' + str(k) + '.pkl'
+with open(file_pickle,'rb') as f:
+	C_DC = pickle.load(f)
+	C_DC_ret = pickle.load(f)
+	C_LC = pickle.load(f)
+	C_LC_ret = pickle.load(f)
+	df_ref = pickle.load(f)
+	df_DC = pickle.load(f)
+	df_DC_ret = pickle.load(f)
+	df_L_train = pickle.load(f)
+	df_LC = pickle.load(f)
+	df_LC_ret = pickle.load(f)

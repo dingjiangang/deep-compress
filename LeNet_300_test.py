@@ -1049,73 +1049,15 @@ with open(file_pickle,'wb') as f:
 	df_LC_ret.to_pickle(f)
 
 import pickle
+file_pickle = './results/results_pickle_k_' + str(k) + '.pkl'
 with open(file_pickle,'rb') as f:
 	C_DC = pickle.load(f)
 	C_DC_ret = pickle.load(f)
 	C_LC = pickle.load(f)
 	C_LC_ret = pickle.load(f)
-	df_ref.read_pickle(f)
-	df_DC.read_pickle(f)
-	df_DC_ret.read_pickle(f)
-	df_L_train.read_pickle(f)
-	df_LC.read_pickle(f)
-	df_LC_ret.read_pickle(f)
-
-
-
-
-
-
-import dill
-results_file_name = 'dill_global_variables_k_' + str(k) + '.pkl'
-results_file_path = './results/' + results_file_name 
-with open(results_file_path, 'wb') as f:
-	dill.dump(train_loss_ref,f)
-	dill.dump(train_error_ref,f)
-	dill.dump(val_loss_ref,f)
-	dill.dump(val_error_ref,f)
-	dill.dump(test_loss_ref,f)
-	dill.dump(test_error_ref,f)
-	dill.dump(C_DC,f)
-	dill.dump(val_loss_DC,f)
-	dill.dump(val_error_DC,f)
-	dill.dump(test_loss_DC,f)
-	dill.dump(test_error_DC,f)
-	dill.dump(train_loss_DC_ret,f)
-	dill.dump(train_error_DC_ret,f)
-	dill.dump(val_loss_DC_ret,f)
-	dill.dump(val_error_DC_ret,f)
-	dill.dump(test_loss_DC_ret,f)
-	dill.dump(test_error_DC_ret,f)
-	dill.dump(C_DC_ret,f)
-	dill.dump(train_loss_L,f)
-	dill.dump(train_error_L,f)
-	dill.dump(val_loss_L,f)
-	dill.dump(val_error_L,f)
-	dill.dump(test_loss_L,f)
-	dill.dump(test_error_L,f)
-	dill.dump(val_loss_C,f)
-	dill.dump(val_error_C,f)
-	dill.dump(test_loss_C,f)
-	dill.dump(test_error_C,f)
-	dill.dump(train_loss_LC_ret,f)
-	dill.dump(train_error_LC_ret,f)
-	dill.dump(val_loss_LC_ret,f)
-	dill.dump(val_error_LC_ret,f)
-	dill.dump(test_loss_LC_ret,f)
-	dill.dump(test_error_LC_ret,f)
-	dill.dump(C_LC_ret,f)
-
-
-# dill.load_session(results_file_path)
-
-
-
-
-
-
-
-
-
-
-
+	df_ref = pickle.load(f)
+	df_DC = pickle.load(f)
+	df_DC_ret = pickle.load(f)
+	df_L_train = pickle.load(f)
+	df_LC = pickle.load(f)
+	df_LC_ret = pickle.load(f)

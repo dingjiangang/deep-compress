@@ -568,7 +568,7 @@ with tf.Session() as sess:
 		# adjust learning rate
 		if i % learning_rate_stay_fixed == 0:
 			j = i // learning_rate_stay_fixed
-			lr = 0.001 * learning_rate_decay ** j
+			lr = 0.0005 * learning_rate_decay ** j
 		# mini batch 
 		start_index = index_minibatch     * minibatch
 		end_index   = (index_minibatch+1) * minibatch
@@ -711,7 +711,6 @@ with tf.Session() as sess:
 			X_batch = X_train[start_index:end_index]
 			y_batch = y_train[start_index:end_index]
 		
-			epoch_train = i // 100
 			###################################################################
 			####################### training batch in L #######################
 			# train on batch
@@ -942,7 +941,7 @@ with tf.Session() as sess:
 		# adjust learning rate
 		if i % learning_rate_stay_fixed == 0:
 			j = i // learning_rate_stay_fixed
-			lr = 0.001 * learning_rate_decay ** j
+			lr = 0.0005 * learning_rate_decay ** j
 		# mini batch 
 		start_index = index_minibatch     * minibatch
 		end_index   = (index_minibatch+1) * minibatch
@@ -998,57 +997,66 @@ with tf.Session() as sess:
 	C_LC_ret = sess.run(codebook_tf, feed_dict = feed_dict)
 
 
-import dill
-results_file_name = 'dill_global_variables_k_' + str(k) + '.pkl'
-results_file_path = './results/' + results_file_name 
-with open(results_file_path, 'wb') as f:
-	dill.dump(k,f)
-	dill.dump(train_loss_ref,f)
-	dill.dump(train_error_ref,f)
-	dill.dump(val_loss_ref,f)
-	dill.dump(val_error_ref,f)
-	dill.dump(test_loss_ref,f)
-	dill.dump(test_error_ref,f)
-	dill.dump(C_DC,f)
-	dill.dump(val_loss_DC,f)
-	dill.dump(val_error_DC,f)
-	dill.dump(test_loss_DC,f)
-	dill.dump(test_error_DC,f)
-	dill.dump(train_loss_DC_ret,f)
-	dill.dump(train_error_DC_ret,f)
-	dill.dump(val_loss_DC_ret,f)
-	dill.dump(val_error_DC_ret,f)
-	dill.dump(test_loss_DC_ret,f)
-	dill.dump(test_error_DC_ret,f)
-	dill.dump(C_DC_ret,f)
-	dill.dump(train_loss_L,f)
-	dill.dump(train_error_L,f)
-	dill.dump(val_loss_L,f)
-	dill.dump(val_error_L,f)
-	dill.dump(test_loss_L,f)
-	dill.dump(test_error_L,f)
-	dill.dump(val_loss_C,f)
-	dill.dump(val_error_C,f)
-	dill.dump(test_loss_C,f)
-	dill.dump(test_error_C,f)
-	dill.dump(train_loss_LC_ret,f)
-	dill.dump(train_error_LC_ret,f)
-	dill.dump(val_loss_LC_ret,f)
-	dill.dump(val_error_LC_ret,f)
-	dill.dump(test_error_LC_ret,f)
-	dill.dump(test_error_LC_ret,f)
-	dill.dump(C_LC_ret,f)
+df_ref = pd.DataFrame({	'train_error_ref' : train_loss_ref,
+						'train_error_ref': train_error_ref,
+						'val_loss_ref': val_loss_ref,
+						'val_error_ref': val_error_ref,
+						'test_loss_ref': test_loss_ref,
+						'test_error_ref': test_error_ref})
+
+df_DC = pd.DataFrame({	'val_loss_DC': val_loss_DC,
+						'val_error_DC': val_error_DC,
+						'test_loss_DC': test_loss_DC,
+						'test_error_DC': test_error_DC}, index=[0])
 
 
-# dill.load_session(results_file_path)
+df_DC_ret = pd.DataFrame({	'val_loss_DC_ret': val_loss_DC_ret,
+							'val_error_DC_ret': val_error_DC_ret,
+							'test_loss_DC_ret': test_loss_DC_ret,
+							'test_error_DC_ret': test_error_DC_ret})
 
+df_L_train = pd.DataFrame({	'train_loss_L' : train_loss_L,
+							'train_error_L': train_error_L})
 
+df_LC = pd.DataFrame({	'val_loss_L': val_loss_L,
+						'val_error_L': val_error_L,
+						'test_loss_L': test_loss_L,
+						'test_error_L': test_error_L,
+						'val_loss_C': val_loss_C,
+						'val_error_C': val_error_C,
+						'test_loss_C': test_loss_C,
+						'test_error_C': test_error_C})
 
+df_LC_ret = pd.DataFrame({	'train_loss_LC_ret': train_loss_LC_ret,
+							'train_error_LC_ret': train_error_LC_ret,
+							'val_loss_LC_ret': val_loss_LC_ret,
+							'val_error_LC_ret': val_error_LC_ret,
+							'test_loss_LC_ret': test_loss_LC_ret,
+							'test_error_LC_ret': test_error_LC_ret})
 
+file_pickle = './results/results_pickle_k_' + str(k) + '.pkl'
+with open(file_pickle,'wb') as f:
+	pickle.dump(C_DC,f)
+	pickle.dump(C_DC_ret,f)
+	pickle.dump(C_LC,f)
+	pickle.dump(C_LC_ret,f)
+	df_ref.to_pickle(f)
+	df_DC.to_pickle(f)
+	df_DC_ret.to_pickle(f)
+	df_L_train.to_pickle(f)
+	df_LC.to_pickle(f)
+	df_LC_ret.to_pickle(f)
 
-
-
-
-
-
-
+# import pickle
+# file_pickle = './results/results_pickle_k_' + str(k) + '.pkl'
+# with open(file_pickle,'rb') as f:
+# 	C_DC = pickle.load(f)
+# 	C_DC_ret = pickle.load(f)
+# 	C_LC = pickle.load(f)
+# 	C_LC_ret = pickle.load(f)
+# 	df_ref = pickle.load(f)
+# 	df_DC = pickle.load(f)
+# 	df_DC_ret = pickle.load(f)
+# 	df_L_train = pickle.load(f)
+# 	df_LC = pickle.load(f)
+# 	df_LC_ret = pickle.load(f)
