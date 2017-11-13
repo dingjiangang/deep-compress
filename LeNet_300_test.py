@@ -998,16 +998,6 @@ with tf.Session() as sess:
 	C_LC_ret = sess.run(codebook_tf, feed_dict = feed_dict)
 
 
-import pickle
-
-file_pickle = './results/results_pickle_k_' + str(k) + '.pkl'
-with open(file_pickle,'wb') as dict_saver:
-	pickle.dump(C_DC,dict_saver)
-	pickle.dump(C_DC_ret,dict_saver)
-	pickle.dump(C_LC,dict_saver)
-	pickle.dump(C_LC_ret,dict_saver)
-
-
 df_ref = pd.DataFrame({	'train_error_ref' : train_loss_ref,
 						'train_error_ref': train_error_ref,
 						'val_loss_ref': val_loss_ref,
@@ -1038,19 +1028,43 @@ df_LC = pd.DataFrame({	'val_loss_L': val_loss_L,
 						'test_loss_C': test_loss_C,
 						'test_error_C': test_error_C})
 
-df_LC_ret = ({	'train_loss_LC_ret': train_loss_LC_ret,
-				'train_error_LC_ret': train_error_LC_ret,
-				'val_loss_LC_ret': val_loss_LC_ret,
-				'val_error_LC_ret': val_error_LC_ret,
-				'test_loss_LC_ret': test_loss_LC_ret,
-				'test_error_LC_ret': test_error_LC_ret})
+df_LC_ret = pd.DataFrame({	'train_loss_LC_ret': train_loss_LC_ret,
+							'train_error_LC_ret': train_error_LC_ret,
+							'val_loss_LC_ret': val_loss_LC_ret,
+							'val_error_LC_ret': val_error_LC_ret,
+							'test_loss_LC_ret': test_loss_LC_ret,
+							'test_error_LC_ret': test_error_LC_ret})
 
-df_ref.to_pickle(file_pickle)
-df_DC.to_pickle(file_pickle)
-df_DC_ret.to_pickle(file_pickle)
-df_L_train.to_pickle(file_pickle)
-df_LC.to_pickle(file_pickle)
-df_LC_ret.to_pickle(file_pickle)
+file_pickle = './results/results_pickle_k_' + str(k) + '.pkl'
+with open(file_pickle,'wb') as f:
+	pickle.dump(C_DC,f)
+	pickle.dump(C_DC_ret,f)
+	pickle.dump(C_LC,f)
+	pickle.dump(C_LC_ret,f)
+	df_ref.to_pickle(f)
+	df_DC.to_pickle(f)
+	df_DC_ret.to_pickle(f)
+	df_L_train.to_pickle(f)
+	df_LC.to_pickle(f)
+	df_LC_ret.to_pickle(f)
+
+import pickle
+with open(file_pickle,'rb') as f:
+	C_DC = pickle.load(f)
+	C_DC_ret = pickle.load(f)
+	C_LC = pickle.load(f)
+	C_LC_ret = pickle.load(f)
+	df_ref.read_pickle(f)
+	df_DC.read_pickle(f)
+	df_DC_ret.read_pickle(f)
+	df_L_train.read_pickle(f)
+	df_LC.read_pickle(f)
+	df_LC_ret.read_pickle(f)
+
+
+
+
+
 
 import dill
 results_file_name = 'dill_global_variables_k_' + str(k) + '.pkl'
