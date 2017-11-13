@@ -1,0 +1,1 @@
+a folder for saving tensorflow models for LeNet-5 CNN
