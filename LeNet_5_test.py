@@ -138,14 +138,14 @@ biases = {
     'out': tf.Variable(tf.random_normal([n_classes]))
 }
 
-def model(x,W,b):
+def model(x,_W,_b):
 	# Reshape input to a 4D tensor 
     x = tf.reshape(x, shape = input_shape)
     # LAYER 1 -- Convolution Layer
     conv1 = tf.nn.relu(tf.nn.conv2d(input = x, 
-    								filter =W['conv1'],
+    								filter =_W['conv1'],
     								strides = [1,S1,S1,1],
-    								padding = 'VALID') + b['conv1'])
+    								padding = 'VALID') + _b['conv1'])
     # Layer 2 -- max pool
     conv1 = tf.nn.max_pool(	value = conv1, 
     						ksize = [1, F2, F2, 1], 
@@ -154,9 +154,9 @@ def model(x,W,b):
 
     # LAYER 3 -- Convolution Layer
     conv2 = tf.nn.relu(tf.nn.conv2d(input = conv1, 
-    								filter =W['conv2'],
+    								filter =_W['conv2'],
     								strides = [1,S3,S3,1],
-    								padding = 'VALID') + b['conv2'])
+    								padding = 'VALID') + _b['conv2'])
     # Layer 4 -- max pool
     conv2 = tf.nn.max_pool(	value = conv2 , 
     						ksize = [1, F4, F4, 1], 
@@ -165,10 +165,10 @@ def model(x,W,b):
     # Fully connected layer
     # Reshape conv2 output to fit fully connected layer
     fc = tf.contrib.layers.flatten(conv2)
-    fc = tf.nn.relu(tf.matmul(fc, W['fc']) + b['fc'])
+    fc = tf.nn.relu(tf.matmul(fc, _W['fc']) + _b['fc'])
     fc = tf.nn.dropout(fc, dropout_rate)
 
-    output = tf.matmul(fc, W['out']) + b['out']
+    output = tf.matmul(fc, _W['out']) + _b['out']
     output = tf.nn.dropout(output, keep_prob = dropout_rate)
     return output
 
@@ -379,7 +379,10 @@ with tf.Session() as sess:
 		# adjust learning rate
 		if i % learning_rate_stay_fixed == 0:
 			j = i // learning_rate_stay_fixed
-			lr = 0.02 * 0.99 ** j
+			if k > 8:
+				lr = 0.02 * 0.98 ** j
+			else:
+				lr = 0.01 * 0.98 ** j
 		# mini batch 
 		start_index = index_minibatch     * minibatch
 		end_index   = (index_minibatch+1) * minibatch
@@ -675,7 +678,10 @@ with tf.Session() as sess:
 		# adjust mu
 		mu = mu_0 * ( a ** j )
 		# adjust learning rate
-		lr = 0.01 * ( 0.99 ** j )
+		if k > 8:
+			lr = 0.01 * ( 0.98 ** j )
+		else:
+			lr = 0.02 * ( 0.98 ** j )
 		#######################################################################
 		######## L Step #######################################################
 		#######################################################################	
@@ -696,7 +702,6 @@ with tf.Session() as sess:
 			X_batch = X_train[start_index:end_index]
 			y_batch = y_train[start_index:end_index]
 		
-			epoch_train = i // 100
 			###################################################################
 			####################### training batch in L #######################
 			# construct feed_dict
