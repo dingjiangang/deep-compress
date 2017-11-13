@@ -143,9 +143,9 @@ def model(x,W,b):
     x = tf.reshape(x, shape = input_shape)
     # LAYER 1 -- Convolution Layer
     conv1 = tf.nn.relu(tf.nn.conv2d(input = x, 
-    								filter =weights['conv1'],
+    								filter =W['conv1'],
     								strides = [1,S1,S1,1],
-    								padding = 'VALID') + biases['conv1'])
+    								padding = 'VALID') + b['conv1'])
     # Layer 2 -- max pool
     conv1 = tf.nn.max_pool(	value = conv1, 
     						ksize = [1, F2, F2, 1], 
@@ -154,9 +154,9 @@ def model(x,W,b):
 
     # LAYER 3 -- Convolution Layer
     conv2 = tf.nn.relu(tf.nn.conv2d(input = conv1, 
-    								filter =weights['conv2'],
+    								filter =W['conv2'],
     								strides = [1,S3,S3,1],
-    								padding = 'VALID') + biases['conv2'])
+    								padding = 'VALID') + b['conv2'])
     # Layer 4 -- max pool
     conv2 = tf.nn.max_pool(	value = conv2 , 
     						ksize = [1, F4, F4, 1], 
@@ -165,10 +165,10 @@ def model(x,W,b):
     # Fully connected layer
     # Reshape conv2 output to fit fully connected layer
     fc = tf.contrib.layers.flatten(conv2)
-    fc = tf.nn.relu(tf.matmul(fc, weights['fc']) + biases['fc'])
+    fc = tf.nn.relu(tf.matmul(fc, W['fc']) + b['fc'])
     fc = tf.nn.dropout(fc, dropout_rate)
 
-    output = tf.matmul(fc, weights['out']) + biases['out']
+    output = tf.matmul(fc, W['out']) + b['out']
     output = tf.nn.dropout(output, keep_prob = dropout_rate)
     return output
 
