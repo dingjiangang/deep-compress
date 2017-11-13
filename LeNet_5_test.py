@@ -283,7 +283,7 @@ loss_L_step =  loss + regularizer
 # Batch size
 minibatch = 512
 # Total minibatches
-total_minibatches = 106
+total_minibatches = 500
 # number of minibatches in data
 num_minibatches_data = data.train.images.shape[0] // minibatch
 
@@ -528,7 +528,7 @@ for layer, _ in w_bar.items():
 	tempZ_mat[np.arange(tempZ.size), tempZ] = 1
 	Z_bias_matrix[layer] = tempZ_mat
 
-total_minibatches = 1000
+total_minibatches = 500
 num_epoch_DC_ret = total_minibatches // num_minibatches_data
 epoch_DC_ret_vec = np.array(range(num_epoch_DC_ret+1)) 
 train_loss_DC_ret = np.zeros(num_epoch_DC_ret+1)
@@ -739,8 +739,8 @@ with tf.Session() as sess:
 				print('step: {}, test loss: {}, test acuracy: {}' \
 							.format(i, test_loss, test_accuracy) )
 			# reference weight and bias
-			w_bar = sess.run(W)
-			bias_bar = sess.run(bias)
+			w_bar = sess.run(weights)
+			bias_bar = sess.run(biases)
 		######################################################################
 		####################### accuracy using w #############################
 		feed_dict = {}
