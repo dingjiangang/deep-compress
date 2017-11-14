@@ -121,21 +121,37 @@ mu_tf = tf.placeholder("float")
 # weights of LeNet-5 CNN -- tf tensors
 weights = {
     # 5 x 5 convolution, 1 input image, 20 outputs
-    'conv1': tf.Variable(tf.random_normal([F1, F1, D1, K1])),
+    'conv1': tf.get_variable('w_conv1', shape=[F1, F1, D1, K1],
+           			initializer=tf.contrib.layers.xavier_initializer()),
+    # 'conv1': tf.Variable(tf.random_normal([F1, F1, D1, K1])),
     # 5x5 conv, 20 inputs, 50 outputs 
-    'conv2': tf.Variable(tf.random_normal([F3, F3, D3, K3])),
+    #'conv2': tf.Variable(tf.random_normal([F3, F3, D3, K3])),
+    'conv2': tf.get_variable('w_conv2', shape=[F3, F3, D3, K3],
+           			initializer=tf.contrib.layers.xavier_initializer()),
     # fully connected, 800 inputs, 500 outputs
-    'fc': tf.Variable(tf.random_normal([n_in_fc, n_hidden])),
+    #'fc': tf.Variable(tf.random_normal([n_in_fc, n_hidden])),
+    'fc': tf.get_variable('w_fc', shape=[n_in_fc, n_hidden],
+           			initializer=tf.contrib.layers.xavier_initializer()),
     # 500 inputs, 10 outputs (class prediction)
-    'out': tf.Variable(tf.random_normal([n_hidden, n_classes]))
+    #'out': tf.Variable(tf.random_normal([n_hidden, n_classes]))
+    'out': tf.get_variable('w_out', shape=[n_hidden, n_classes],
+           			initializer=tf.contrib.layers.xavier_initializer())
 }
 
 # biases of LeNet-5 CNN -- tf tensors
 biases = {
-    'conv1': tf.Variable(tf.random_normal([K1])),
-    'conv2': tf.Variable(tf.random_normal([K3])),
-    'fc': tf.Variable(tf.random_normal([n_hidden])),
-    'out': tf.Variable(tf.random_normal([n_classes]))
+    'conv1': tf.get_variable('b_conv1', shape=[K1],
+           			initializer=tf.contrib.layers.xavier_initializer()),
+    'conv2': tf.get_variable('b_conv2', shape=[K3],
+           			initializer=tf.contrib.layers.xavier_initializer()),
+    'fc': tf.get_variable('b_fc', shape=[n_hidden],
+           			initializer=tf.contrib.layers.xavier_initializer()),
+    'out': tf.get_variable('b_out', shape=[n_classes],
+           			initializer=tf.contrib.layers.xavier_initializer()) 
+    # 'conv1': tf.Variable(tf.random_normal([K1])),
+    # 'conv2': tf.Variable(tf.random_normal([K3])),
+    # 'fc': tf.Variable(tf.random_normal([n_hidden])),
+    # 'out': tf.Variable(tf.random_normal([n_classes]))
 }
 
 def model(x,_W,_b):
@@ -380,9 +396,9 @@ with tf.Session() as sess:
 		if i % learning_rate_stay_fixed == 0:
 			j = i // learning_rate_stay_fixed
 			if k > 8:
-				lr = 0.005 * 0.98 ** j
+				lr = 0.01 * 0.98 ** j
 			else:
-				lr = 0.005 * 0.98 ** j
+				lr = 0.02 * 0.98 ** j
 		# mini batch 
 		start_index = index_minibatch     * minibatch
 		end_index   = (index_minibatch+1) * minibatch
@@ -681,7 +697,7 @@ with tf.Session() as sess:
 		if k > 8:
 			lr = 0.01 * ( 0.98 ** j )
 		else:
-			lr = 0.01 * ( 0.98 ** j )
+			lr = 0.02 * ( 0.98 ** j )
 		#######################################################################
 		######## L Step #######################################################
 		#######################################################################	
