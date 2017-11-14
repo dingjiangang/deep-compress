@@ -306,7 +306,7 @@ num_minibatches_data = data.train.images.shape[0] // minibatch
 # Learning rate
 lr = 0.01
 # Learning rate decay:  every 2000 minibatches
-learning_rate_decay = 0.98
+learning_rate_decay = 0.99
 learning_rate_stay_fixed = 2000
 
 # Optimizer: Nesterov accelerated gradient with momentum 0.95
@@ -396,9 +396,9 @@ with tf.Session() as sess:
 		if i % learning_rate_stay_fixed == 0:
 			j = i // learning_rate_stay_fixed
 			if k > 8:
-				lr = 0.01 * 0.98 ** j
+				lr = 0.01 * 0.99 ** j
 			else:
-				lr = 0.02 * 0.98 ** j
+				lr = 0.02 * 0.99 ** j
 		# mini batch 
 		start_index = index_minibatch     * minibatch
 		end_index   = (index_minibatch+1) * minibatch

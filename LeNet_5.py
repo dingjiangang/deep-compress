@@ -7,35 +7,11 @@ data = input_MNIST_data.read_data_sets("./data/", one_hot=True)
 import numpy as np
 import sys
 import dill
+import collections
 
 import pickle
 
 import pandas as pd
-
-# df_ref = pd.DataFrame({'iter' : [],
-# 					   'loss_train_ref': [],
-# 					   'error_train_ref': [],
-# 					   'loss_test_ref': [],
-# 					   'error_test_ref':[]})
-
-# df_DC = pd.DataFrame({ 'loss_test_DC': [],
-# 					   'error_test_DC': [] })
-
-# df_DC_retrain = pd.DataFrame({ 'iter' : [],
-# 							   'loss_train_DC_retrain': [],
-# 							   'error_train_DC_retrain': [],
-# 							   'loss_test_DC_retrain': [],
-# 							   'error_test_DC_retrain':[]} )
-
-# df_LC = pd.DataFrame({ 'iter' : [],
-# 					   'loss_train_L': [],
-# 					   'error_train_L': [],
-# 					   'loss_test_L': [],
-# 					   'error_test_L':[],
-# 					   'loss_test_C': [],
-# 					   'error_test_C': [] })
-
-
 import argparse
 # Set up argument parser
 ap = argparse.ArgumentParser()
@@ -49,6 +25,10 @@ from sklearn.cluster import KMeans
 from numpy import linalg as LA
 
 print('----------------------------------------------')
+print('architecture: LeNet-5 --- Data Set: MNIST')
+print('----------------------------------------------')
+
+print('----------------------------------------------')
 print('Compression Algorithm for k = {}' .format(k))
 print('----------------------------------------------')
 
@@ -56,189 +36,254 @@ print('----------------------------------------------')
 n_input   = data.train.images.shape[1]  # here MNIST data input (28,28)
 n_classes = data.train.labels.shape[1]  # here MNIST (0-9 digits)
 
-# Network Parameters
-n_hidden_1 = 300  # 1st layer num features
-n_hidden_2 = 100  # 2nd layer num features
+# dropout rate
+dropout_rate = 0.5
+# number of weights and bias in each layer
+n_W = {}
+n_b = {}
 
+# network architecture hyper parameters
+input_shape = [-1,28,28,1]
+W0 = 28
+H0 = 28
+
+# Layer 1 -- conv
+D1 = 1
+F1 = 5
+K1 = 20
+S1 = 1
+W1 = (W0 - F1) // S1 + 1
+H1 = (H0 - F1) // S1 + 1
+conv1_dim = [F1, F1, D1, K1]
+conv1_strides = [1,S1,S1,1] 
+n_W['conv1'] = F1 * F1 * D1 * K1
+n_b['conv1'] = K1 
+
+# Layer 2 -- max pool
+D2 = K1
+F2 = 2
+K2 = D2
+S2 = 2
+W2 = (W1 - F2) // S2 + 1
+H2 = (H1 - F2) // S2 + 1
+layer2_ksize = [1,F2,F2,1]
+layer2_strides = [1,S2,S2,1]
+
+# Layer 3 -- conv
+D3 = K2
+F3 = 5
+K3 = 50
+S3 = 1
+W3 = (W2 - F3) // S3 + 1
+H3 = (H2 - F3) // S3 + 1
+conv2_dim = [F3, F3, D3, K3]
+conv2_strides = [1,S3,S3,1] 
+n_W['conv2'] = F3 * F3 * D3 * K3
+n_b['conv2'] = K3 
+
+# Layer 4 -- max pool
+D4 = K3
+F4 = 2
+K4 = D4
+S4 = 2
+W4 = (W3 - F4) // S4 + 1
+H4 = (H3 - F4) // S4 + 1
+layer4_ksize = [1,F4,F4,1]
+layer4_strides = [1,S4,S4,1]
+
+
+# Layer 5 -- fully connected
+n_in_fc = W4 * H4 * D4
+n_hidden = 500
+fc_dim = [n_in_fc,n_hidden]
+n_W['fc'] = n_in_fc * n_hidden
+n_b['fc'] = n_hidden
+
+# Layer 6 -- output
+n_in_out = n_hidden
+n_W['out'] = n_hidden * n_classes
+n_b['out'] = n_classes
+
+for key, value in n_W.items():
+	n_W[key] = int(value)
+
+for key, value in n_b.items():
+	n_b[key] = int(value)
 
 # tf Graph input
 x = tf.placeholder("float", [None, n_input])
 y = tf.placeholder("float", [None, n_classes])
+
 learning_rate = tf.placeholder("float")
 momentum_tf = tf.placeholder("float")
+mu_tf = tf.placeholder("float")
 
+# weights of LeNet-5 CNN -- tf tensors
+weights = {
+    # 5 x 5 convolution, 1 input image, 20 outputs
+    'conv1': tf.get_variable('w_conv1', shape=[F1, F1, D1, K1],
+           			initializer=tf.contrib.layers.xavier_initializer()),
+    # 'conv1': tf.Variable(tf.random_normal([F1, F1, D1, K1])),
+    # 5x5 conv, 20 inputs, 50 outputs 
+    #'conv2': tf.Variable(tf.random_normal([F3, F3, D3, K3])),
+    'conv2': tf.get_variable('w_conv2', shape=[F3, F3, D3, K3],
+           			initializer=tf.contrib.layers.xavier_initializer()),
+    # fully connected, 800 inputs, 500 outputs
+    #'fc': tf.Variable(tf.random_normal([n_in_fc, n_hidden])),
+    'fc': tf.get_variable('w_fc', shape=[n_in_fc, n_hidden],
+           			initializer=tf.contrib.layers.xavier_initializer()),
+    # 500 inputs, 10 outputs (class prediction)
+    #'out': tf.Variable(tf.random_normal([n_hidden, n_classes]))
+    'out': tf.get_variable('w_out', shape=[n_hidden, n_classes],
+           			initializer=tf.contrib.layers.xavier_initializer())
+}
 
-def model(_X, _W, _bias):
-    # Hidden layer with tanh activation
-    layer_1 = tf.nn.tanh(tf.add(tf.matmul(_X, _W['fc1']), _bias['fc1']))  
-    # Hidden layer with tanh activation
-    layer_2 = tf.nn.tanh(tf.add(tf.matmul(layer_1, _W['fc2']), _bias['fc2']))  
-    # output without any activation
-    output = tf.add(tf.matmul(layer_2, _W['out']) , _bias['out'])
+# biases of LeNet-5 CNN -- tf tensors
+biases = {
+    'conv1': tf.get_variable('b_conv1', shape=[K1],
+           			initializer=tf.contrib.layers.xavier_initializer()),
+    'conv2': tf.get_variable('b_conv2', shape=[K3],
+           			initializer=tf.contrib.layers.xavier_initializer()),
+    'fc': tf.get_variable('b_fc', shape=[n_hidden],
+           			initializer=tf.contrib.layers.xavier_initializer()),
+    'out': tf.get_variable('b_out', shape=[n_classes],
+           			initializer=tf.contrib.layers.xavier_initializer()) 
+    # 'conv1': tf.Variable(tf.random_normal([K1])),
+    # 'conv2': tf.Variable(tf.random_normal([K3])),
+    # 'fc': tf.Variable(tf.random_normal([n_hidden])),
+    # 'out': tf.Variable(tf.random_normal([n_classes]))
+}
+
+def model(x,_W,_b):
+	# Reshape input to a 4D tensor 
+    x = tf.reshape(x, shape = input_shape)
+    # LAYER 1 -- Convolution Layer
+    conv1 = tf.nn.relu(tf.nn.conv2d(input = x, 
+    								filter =_W['conv1'],
+    								strides = [1,S1,S1,1],
+    								padding = 'VALID') + _b['conv1'])
+    # Layer 2 -- max pool
+    conv1 = tf.nn.max_pool(	value = conv1, 
+    						ksize = [1, F2, F2, 1], 
+    						strides = [1, S2, S2, 1], 
+    						padding = 'VALID')
+
+    # LAYER 3 -- Convolution Layer
+    conv2 = tf.nn.relu(tf.nn.conv2d(input = conv1, 
+    								filter =_W['conv2'],
+    								strides = [1,S3,S3,1],
+    								padding = 'VALID') + _b['conv2'])
+    # Layer 4 -- max pool
+    conv2 = tf.nn.max_pool(	value = conv2 , 
+    						ksize = [1, F4, F4, 1], 
+    						strides = [1, S4, S4, 1], 
+    						padding = 'VALID')
+    # Fully connected layer
+    # Reshape conv2 output to fit fully connected layer
+    fc = tf.contrib.layers.flatten(conv2)
+    fc = tf.nn.relu(tf.matmul(fc, _W['fc']) + _b['fc'])
+    fc = tf.nn.dropout(fc, dropout_rate)
+
+    output = tf.matmul(fc, _W['out']) + _b['out']
+    output = tf.nn.dropout(output, keep_prob = dropout_rate)
     return output
 
-def model_compression(_X, _wC_tf, _biasC_tf):
-    # Hidden layer with tanh activation
-    layer_1 = tf.nn.tanh(tf.add(tf.matmul(_X, _wC_tf['fc1']), _biasC_tf['fc1']))  
-    # Hidden layer with tanh activation
-    layer_2 = tf.nn.tanh(tf.add(tf.matmul(layer_1, _wC_tf['fc2']), _biasC_tf['fc2']))  
-    # output without any activation
-    output_compression = tf.add(tf.matmul(layer_2, _wC_tf['out']) , _biasC_tf['out'])
-    return output_compression
+wC_tf = {}
+for layer, _ in weights.items():
+	wC_tf[layer] = tf.placeholder("float", weights[layer].get_shape())
 
-def model_compression_retrain(_X, _W_DC_ret_tf, _bias_DC_ret_tf):
-    # Hidden layer with tanh activation
-    layer_1 = tf.nn.tanh(tf.add(tf.matmul(_X, _W_DC_ret_tf['fc1']), _bias_DC_ret_tf['fc1']))  
-    # Hidden layer with tanh activation
-    layer_2 = tf.nn.tanh(tf.add(tf.matmul(layer_1, _W_DC_ret_tf['fc2']), _bias_DC_ret_tf['fc2']))  
-    # output without any activation
-    output_DC_retrain = tf.add(tf.matmul(layer_2, _W_DC_ret_tf['out']) , _bias_DC_ret_tf['out'])
-    return output_DC_retrain
+biasC_tf = {}
+for layer, _ in biases.items():
+	biasC_tf[layer] = tf.placeholder("float", biases[layer].get_shape())
 
+lamda_tf = {}
+for layer, _ in weights.items():
+	lamda_tf[layer] = tf.placeholder("float", weights[layer].get_shape())
 
-# Store layers weight & bias
-W = {
-    'fc1': tf.Variable(tf.random_normal([n_input, n_hidden_1], stddev=0.01)),
-    'fc2': tf.Variable(tf.random_normal([n_hidden_1, n_hidden_2], stddev=0.01)),
-    'out': tf.Variable(tf.random_normal([n_hidden_2, n_classes], stddev=0.01))
-}
+lamda_bias_tf = {}
+for layer, _ in biases.items():
+	lamda_bias_tf[layer] = tf.placeholder("float", biases[layer].get_shape())
 
-bias = {
-    'fc1': tf.Variable(tf.random_normal([n_hidden_1], stddev=0.01)),
-    'fc2': tf.Variable(tf.random_normal([n_hidden_2], stddev=0.01)),
-    'out': tf.Variable(tf.random_normal([n_classes], stddev=0.01))
-}
+w_init_placeholder = {}
+for layer, _ in weights.items():
+	w_init_placeholder[layer] = tf.placeholder("float", weights[layer].get_shape())
 
-# L step tf
-mu_tf = tf.placeholder("float")
-wC_tf = {
-    'fc1': tf.placeholder("float", [n_input, n_hidden_1]),
-    'fc2': tf.placeholder("float", [n_hidden_1, n_hidden_2]),
-    'out': tf.placeholder("float", [n_hidden_2, n_classes])
-}
-biasC_tf = {
-	'fc1': tf.placeholder("float", [n_hidden_1]),
-    'fc2': tf.placeholder("float", [n_hidden_2]),
-    'out': tf.placeholder("float", [n_classes])
-}
+bias_init_placeholder = {}
+for layer, _ in biases.items():
+	bias_init_placeholder[layer] = tf.placeholder("float", biases[layer].get_shape())
 
-lamda_tf = {
-	'fc1': tf.placeholder("float", [n_input, n_hidden_1]),
-    'fc2': tf.placeholder("float", [n_hidden_1, n_hidden_2]),
-    'out': tf.placeholder("float", [n_hidden_2, n_classes])
-}
+w_init = {}
+for layer, _ in weights.items():
+	w_init[layer] = weights[layer].assign(w_init_placeholder[layer])
 
-lamda_bias_tf = {
-	'fc1': tf.placeholder("float", [n_hidden_1]),
-    'fc2': tf.placeholder("float", [n_hidden_2]),
-    'out': tf.placeholder("float", [n_classes])
-}
+bias_init = {}
+for layer, _ in biases.items():
+	bias_init[layer] = biases[layer].assign(bias_init_placeholder[layer])
 
-w_init_placeholder = {
-    'fc1': tf.placeholder("float", [n_input, n_hidden_1]),
-    'fc2': tf.placeholder("float", [n_hidden_1, n_hidden_2]),
-    'out': tf.placeholder("float", [n_hidden_2, n_classes])
-}
-bias_init_placeholder = {
-	'fc1': tf.placeholder("float", [n_hidden_1]),
-    'fc2': tf.placeholder("float", [n_hidden_2]),
-    'out': tf.placeholder("float", [n_classes])
-}
+norm_tf = tf.Variable(initial_value=[0.0], trainable=False)
+for layer, _ in weights.items():
+	norm_tf = norm_tf + tf.norm(weights[layer] - wC_tf[layer] - lamda_tf[layer] / mu_tf,ord='euclidean')
 
-w_init = {
- 	'fc1' : W['fc1'].assign(w_init_placeholder['fc1']),
- 	'fc2' : W['fc2'].assign(w_init_placeholder['fc2']),
- 	'out' : W['out'].assign(w_init_placeholder['out'])
-}
+for layer,_ in biases.items():
+	norm_tf = norm_tf + tf.norm(biases[layer] - biasC_tf[layer] - lamda_bias_tf[layer] / mu_tf,ord='euclidean')
 
-bias_init = {
- 	'fc1' : bias['fc1'].assign(bias_init_placeholder['fc1']),
- 	'fc2' : bias['fc2'].assign(bias_init_placeholder['fc2']),
- 	'out' : bias['out'].assign(bias_init_placeholder['out'])
-}
+codebook_tf = {}
+for layer, _ in weights.items():
+	codebook_tf[layer] = tf.Variable(tf.random_normal([k,1], stddev=0.01))
 
-norm_tf = tf.norm( W['fc1'] - wC_tf['fc1'] - lamda_tf['fc1'] / mu_tf ,ord='euclidean') \
-	    + tf.norm( W['fc2'] - wC_tf['fc2'] - lamda_tf['fc2'] / mu_tf ,ord='euclidean') \
-	    + tf.norm( W['out'] - wC_tf['out'] - lamda_tf['out'] / mu_tf,ord='euclidean') \
-	    + tf.norm( bias['fc1'] - biasC_tf['fc1'] - lamda_bias_tf['fc1'] / mu_tf ,ord='euclidean') \
-	    + tf.norm( bias['fc2'] - biasC_tf['fc2'] - lamda_bias_tf['fc2'] / mu_tf ,ord='euclidean') \
-	    + tf.norm( bias['out'] - biasC_tf['out'] - lamda_bias_tf['out'] / mu_tf ,ord='euclidean')
+codebook_placeholder_tf = {}
+for layer, _ in weights.items():
+	codebook_placeholder_tf[layer] = tf.placeholder("float", [k,1])
 
+init_codebook_tf = {}
+for layer, _ in weights.items():
+	init_codebook_tf[layer] = codebook_tf[layer].assign(codebook_placeholder_tf[layer])
 
-codebook_tf = {
-	'fc1' : tf.Variable(tf.random_normal([k,1], stddev=0.01)),
-	'fc2' : tf.Variable(tf.random_normal([k,1], stddev=0.01)),
-	'out' : tf.Variable(tf.random_normal([k,1], stddev=0.01))
-}
+Z_W_int_tf = {}
+for layer, _ in weights.items():
+	Z_W_int_tf[layer] = tf.placeholder(tf.int32, [n_W[layer],k])
 
-codebook_placeholder_tf = {
-	'fc1': tf.placeholder("float", [k,1]),
-	'fc2': tf.placeholder("float", [k,1]),
-	'out': tf.placeholder("float", [k,1]),
-}
+Z_W_tf = {}
+for layer, _ in weights.items():
+	Z_W_tf[layer] = tf.cast(Z_W_int_tf[layer],tf.float32)
 
-init_codebook_tf = {
-	'fc1': codebook_tf['fc1'].assign(codebook_placeholder_tf['fc1']),
-	'fc2': codebook_tf['fc1'].assign(codebook_placeholder_tf['fc2']),
-	'out': codebook_tf['out'].assign(codebook_placeholder_tf['out']),
-}
+Z_bias_int_tf = {}
+for layer, _ in biases.items():
+	Z_bias_int_tf[layer] = tf.placeholder(tf.int32, [n_b[layer],k])
 
-#
-Z_W_int_tf = {
-	'fc1': tf.placeholder(tf.int32, [n_input * n_hidden_1, k]),
-    'fc2': tf.placeholder(tf.int32, [n_hidden_1 * n_hidden_2, k]),
-    'out': tf.placeholder(tf.int32, [n_hidden_2 * n_classes, k])
-}
+Z_bias_tf = {}
+for layer, _ in biases.items():
+	Z_bias_tf[layer] = tf.cast(Z_bias_int_tf[layer],tf.float32)
 
-Z_W_tf = {
-	'fc1': tf.cast(Z_W_int_tf['fc1'],tf.float32),
-    'fc2': tf.cast(Z_W_int_tf['fc2'],tf.float32),
-    'out': tf.cast(Z_W_int_tf['out'],tf.float32)
-}
-
-Z_bias_int_tf = {
-	'fc1': tf.placeholder(tf.int32, [n_hidden_1,k]),
-    'fc2': tf.placeholder(tf.int32, [n_hidden_2,k]),
-    'out': tf.placeholder(tf.int32, [n_classes,k])
-}
-
-Z_bias_tf = {
-	'fc1': tf.cast(Z_bias_int_tf['fc1'],tf.float32),
-    'fc2': tf.cast(Z_bias_int_tf['fc2'],tf.float32),
-    'out': tf.cast(Z_bias_int_tf['out'],tf.float32)
-}
 # DC retrain
-W_DC_ret_tf = {
-	'fc1': tf.reshape(tf.matmul(Z_W_tf['fc1'] , codebook_tf['fc1']), [n_input, n_hidden_1]),
-	'fc2': tf.reshape(tf.matmul(Z_W_tf['fc2'] , codebook_tf['fc2']), [n_hidden_1, n_hidden_2]),
-	'out': tf.reshape(tf.matmul(Z_W_tf['out'] , codebook_tf['out']), [n_hidden_2, n_classes])
-}
+W_DC_ret_tf = {}
+for layer, _ in weights.items():
+	W_DC_ret_tf[layer] = tf.reshape(tf.matmul(Z_W_tf[layer] , codebook_tf[layer]), weights[layer].get_shape())
 
-bias_DC_ret_tf = {
-	'fc1': tf.reshape( tf.matmul(Z_bias_tf['fc1'], codebook_tf['fc1']), [-1]),
-	'fc2': tf.reshape( tf.matmul(Z_bias_tf['fc2'], codebook_tf['fc2']), [-1]),
-	'out': tf.reshape( tf.matmul(Z_bias_tf['out'], codebook_tf['out']), [-1])
-}
-
+bias_DC_ret_tf = {}
+for layer, _ in biases.items():
+	bias_DC_ret_tf[layer] = tf.reshape(tf.matmul(Z_bias_tf[layer] , codebook_tf[layer]), biases[layer].get_shape())
+# oe shape = -1
 
 # Construct model
-output = model(x, W, bias)
-# Define loss and optimizer
+output = model(x,weights,biases)
 # Softmax loss
 loss = tf.reduce_mean(
 	tf.nn.softmax_cross_entropy_with_logits(labels = y, logits = output))
 correct_prediction = tf.equal(tf.argmax(output, 1), tf.argmax(y, 1))
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
+# Define loss and optimizer
+
 # Construct model using shared weights
-output_compression = model_compression(x, wC_tf, biasC_tf)
+output_compression = model(x, wC_tf, biasC_tf)
 correct_prediction_compression = tf.equal(tf.argmax(output_compression, 1), tf.argmax(y, 1))
 accuracy_compression = tf.reduce_mean(tf.cast(correct_prediction_compression, tf.float32))
 loss_compression = tf.reduce_mean(
 	tf.nn.softmax_cross_entropy_with_logits(labels = y, logits = output_compression))
 
 # DC retrain
-output_DC_retrain = model_compression_retrain(x, W_DC_ret_tf,bias_DC_ret_tf)
+output_DC_retrain = model(x, W_DC_ret_tf,bias_DC_ret_tf)
 correct_prediction_DC_ret = tf.equal(tf.argmax(output_DC_retrain, 1), tf.argmax(y, 1))
 accuracy_DC_ret = tf.reduce_mean(tf.cast(correct_prediction_DC_ret, tf.float32))
 loss_DC_ret = tf.reduce_mean(
@@ -249,36 +294,9 @@ regularizer = mu_tf / 2 * norm_tf
 
 loss_L_step =  loss + regularizer 
 
-# learning_rate = tf.placeholder("float")
+# REFERENCE MODEL Parameters -- for training the Reference model: 
 
-# grad_w = {
-#     'fc1': tf.gradients(loss, W['fc1']),
-#     'fc2': tf.gradients(loss, W['fc2']),
-#     'out': tf.gradients(loss, W['out'])
-# }
-
-# grad_bias = {
-#     'fc1': tf.gradients(loss, bias['fc1']),
-#     'fc2': tf.gradients(loss, bias['fc1']),
-#     'out': tf.gradients(loss, bias['fc1'])
-# }
-
-# new_W = {
-# 	'fc1' : W['fc1'].assign(W['fc1'] - learning_rate * grad_w['fc1']),
-# 	'fc2' : W['fc2'].assign(W['fc2'] - learning_rate * grad_w['fc2']),
-# 	'out' : W['out'].assign(W['out'] - learning_rate * grad_w['out'])
-# }
-
-# new_bias = {
-# 	'fc1' : bias['fc1'].assign(bias['fc1'] - learning_rate * grad_bias['fc1']),
-# 	'fc2' : bias['fc2'].assign(bias['fc2'] - learning_rate * grad_bias['fc2']),
-# 	'out' : W['out'].assign(bias['out'] - learning_rate * grad_bias['out'])
-# }
-
-
-#Training the Reference model: 
-
-# Batch size: 512
+# Batch size
 minibatch = 512
 # Total minibatches
 total_minibatches = 100000
@@ -286,9 +304,9 @@ total_minibatches = 100000
 num_minibatches_data = data.train.images.shape[0] // minibatch
 
 # Learning rate
-lr = 0.02
+lr = 0.01
 # Learning rate decay:  every 2000 minibatches
-learning_rate_decay = 0.98
+learning_rate_decay = 0.99
 learning_rate_stay_fixed = 2000
 
 # Optimizer: Nesterov accelerated gradient with momentum 0.95
@@ -363,7 +381,7 @@ test_error_ref = np.zeros(num_epoch_ref+1)
 
 ################### TO SAVE MODEL ##################
 model_file_name = 'reference_model_k_' + str(k)
-model_file_path = './model/' + model_file_name 
+model_file_path = './model_lenet_5/' + model_file_name 
 
 ############################## TRAIN LOOP #####################################
 with tf.Session() as sess:
@@ -377,13 +395,21 @@ with tf.Session() as sess:
 		# adjust learning rate
 		if i % learning_rate_stay_fixed == 0:
 			j = i // learning_rate_stay_fixed
-			lr = 0.02 * learning_rate_decay ** j
+			if k > 8:
+				lr = 0.01 * 0.99 ** j
+			else:
+				lr = 0.02 * 0.99 ** j
 		# mini batch 
 		start_index = index_minibatch     * minibatch
 		end_index   = (index_minibatch+1) * minibatch
 		X_batch = X_train[start_index:end_index]
 		y_batch = y_train[start_index:end_index]
 
+		train.run(feed_dict = { x: X_batch,
+					 			y: y_batch,
+								learning_rate: lr,
+								momentum_tf: momentum})
+		
 		############### LOSS AND ACCURACY EVALUATION ##########################
 		if index_minibatch == 0:
 			train_loss, train_accuracy = \
@@ -410,18 +436,12 @@ with tf.Session() as sess:
 				.format(i, val_loss, val_accuracy) )
 			print('step: {}, test loss: {}, test acuracy: {}' \
 				.format(i, test_loss, test_accuracy) )
-				
-		
-		train.run(feed_dict = { x: X_batch,
-					 			y: y_batch,
-								learning_rate: lr,
-								momentum_tf: momentum})
 		#train_loss_ref = sess.run(loss)
 		
 	save_path = saver.save(sess, model_file_path)
 	# reference weight and bias
-	w_bar = sess.run(W)
-	bias_bar = sess.run(bias)
+	w_bar = sess.run(weights)
+	bias_bar = sess.run(biases)
 
 ###############################################################################
 ################### learn codebook and assignments ############################
@@ -455,7 +475,7 @@ C_DC = C
 
 ################### TO SAVE DC MODEL ##################
 model_file_name = 'DC_model_k_' + str(k)
-model_file_path = './model/' + model_file_name 
+model_file_path = './model_lenet_5/' + model_file_name 
 
 ###############################################################################
 ########################## DC = Kmeans(w_bar) #################################
@@ -473,36 +493,26 @@ for layer, _ in w_bar.items():
 
 with tf.Session() as sess:
 	sess.run(init)
-	feed_dict = {
-			wC_tf['fc1']: wC_reshape['fc1'],
-			wC_tf['fc2']: wC_reshape['fc2'],
-			wC_tf['out']: wC_reshape['out'],
-			biasC_tf['fc1']: biasC['fc1'],
-			biasC_tf['fc2']: biasC['fc2'],
-			biasC_tf['out']: biasC['out'],
-			x: data.validation.images,
-			y: data.validation.labels}
+	# construct feed_dict
+	feed_dict = {}
+	for layer, _ in weights.items():
+		feed_dict.update({ wC_tf[layer]: wC_reshape[layer] })
+		feed_dict.update({ biasC_tf[layer]: biasC[layer] })
+	feed_dict.update({ 	x: data.validation.images,
+				   		y: data.validation.labels})
 	
 	val_loss, val_accuracy = \
 			sess.run([loss_compression, accuracy_compression], 
-							feed_dict = feed_dict )
+										feed_dict = feed_dict )
 	val_loss_DC = val_loss
 	val_error_DC = 1 - val_accuracy
 
-	feed_dict = {
-			wC_tf['fc1']: wC_reshape['fc1'],
-			wC_tf['fc2']: wC_reshape['fc2'],
-			wC_tf['out']: wC_reshape['out'],
-			biasC_tf['fc1']: biasC['fc1'],
-			biasC_tf['fc2']: biasC['fc2'],
-			biasC_tf['out']: biasC['out'],
-			x: data.test.images, 
-			y: data.test.labels}
-
+	feed_dict.update({ 	x: data.test.images,
+				   		y: data.test.labels})
 
 	test_loss, test_accuracy = \
 	sess.run([loss_compression, accuracy_compression], 
-								feed_dict = feed_dict)
+									feed_dict = feed_dict)
 	test_loss_DC= test_loss
 	test_error_DC = 1 - test_accuracy
 	print('val loss: {}, val acuracy: {}' \
@@ -537,7 +547,7 @@ for layer, _ in w_bar.items():
 	tempZ_mat[np.arange(tempZ.size), tempZ] = 1
 	Z_bias_matrix[layer] = tempZ_mat
 
-total_minibatches = 20000
+total_minibatches = 40000
 num_epoch_DC_ret = total_minibatches // num_minibatches_data
 epoch_DC_ret_vec = np.array(range(num_epoch_DC_ret+1)) 
 train_loss_DC_ret = np.zeros(num_epoch_DC_ret+1)
@@ -549,15 +559,14 @@ test_error_DC_ret = np.zeros(num_epoch_DC_ret+1)
 
 ################### TO SAVE MODEL ##################
 model_file_name = 'DC_ret_model_k_' + str(k)
-model_file_path = './model/' + model_file_name 
+model_file_path = './model_lenet_5/' + model_file_name 
 
 with tf.Session() as sess:
 	sess.run(init)
-	feed_dict = {
-		codebook_placeholder_tf['fc1']: C['fc1'],
-		codebook_placeholder_tf['fc2']: C['fc2'],
-		codebook_placeholder_tf['out']: C['out']
-	}
+	
+	feed_dict = {}
+	for layer, _ in weights.items():
+		feed_dict.update({ codebook_placeholder_tf[layer]: C[layer] })
 	sess.run(init_codebook_tf, feed_dict= feed_dict)
 	for i in range(total_minibatches):
 		index_minibatch = i % num_minibatches_data
@@ -568,25 +577,26 @@ with tf.Session() as sess:
 		# adjust learning rate
 		if i % learning_rate_stay_fixed == 0:
 			j = i // learning_rate_stay_fixed
-			lr = 0.0005 * learning_rate_decay ** j
+			if k > 8:
+				lr = 0.01 * 0.99 ** j
+			else:
+				lr = 0.02 * 0.99 ** j				
 		# mini batch 
 		start_index = index_minibatch     * minibatch
 		end_index   = (index_minibatch+1) * minibatch
 		X_batch = X_train[start_index:end_index]
 		y_batch = y_train[start_index:end_index]
 		
-		feed_dict = {
-			Z_W_int_tf['fc1']: Z_W_matrix['fc1'],
-			Z_W_int_tf['fc2']: Z_W_matrix['fc2'],
-			Z_W_int_tf['out']: Z_W_matrix['out'],
-			Z_bias_int_tf['fc1']: Z_bias_matrix['fc1'],
-			Z_bias_int_tf['fc2']: Z_bias_matrix['fc2'],
-			Z_bias_int_tf['out']: Z_bias_matrix['out'],
-			x: X_batch,
-			y: y_batch,
-			learning_rate: lr,
-			momentum_tf: momentum
-		}
+		# construct feed_dict
+		feed_dict = {}
+		for layer, _ in weights.items():
+			feed_dict.update({Z_W_int_tf[layer]: Z_W_matrix[layer]})
+			feed_dict.update({Z_bias_int_tf[layer]: Z_bias_matrix[layer]})
+		feed_dict.update({	x: X_batch,
+							y: y_batch,
+							learning_rate: lr,
+							momentum_tf: momentum})
+	
 		train_DC_ret_step.run(feed_dict = feed_dict)
 		############### LOSS AND ACCURACY EVALUATION ##########################
 		if index_minibatch == 0:
@@ -639,8 +649,8 @@ momentum = 0.95
 # mu parameters
 mu_0 = 9.75e-5
 a = 1.1
-max_iter_each_L_step = 2000
-LC_epoches = 31
+max_iter_each_L_step = 4000
+LC_epoches = 2
 random_w_init = 1 # 0: random init, 1 if init with reference net
 
 ################### TO SAVE TRAINING AND TEST LOSS AND ERROR ##################
@@ -664,7 +674,7 @@ test_error_C = np.zeros(LC_epoches)
 
 ################### TO SAVE MODEL ##################
 model_file_name = 'LC_model_k_' + str(k)
-model_file_path = './model/' + model_file_name 
+model_file_path = './model_lenet_5/' + model_file_name 
 
 with tf.Session() as sess: 
 	###########################################################################
@@ -675,14 +685,11 @@ with tf.Session() as sess:
 	else:
 		sess.run(init)
 		# initilize weights and bias with reference net
-		feed_dict = {
-			w_init_placeholder['fc1']: w_bar['fc1'],
-			w_init_placeholder['fc2']: w_bar['fc2'],
-			w_init_placeholder['out']: w_bar['out'],
-			bias_init_placeholder['fc1']: bias_bar['fc1'],
-			bias_init_placeholder['fc2']: bias_bar['fc2'],
-			bias_init_placeholder['out']: bias_bar['out']
-		}
+		feed_dict = {}
+		for layer, _ in weights.items():
+			feed_dict.update({w_init_placeholder[layer]: w_bar[layer]})
+			feed_dict.update({bias_init_placeholder[layer]: bias_bar[layer]})
+
 		sess.run([w_init,bias_init], feed_dict=feed_dict)
 	
 	for j in range(LC_epoches):
@@ -690,7 +697,10 @@ with tf.Session() as sess:
 		# adjust mu
 		mu = mu_0 * ( a ** j )
 		# adjust learning rate
-		lr = 0.01 * ( 0.99 ** j )
+		if k > 8:
+			lr = 0.01 * ( 0.99 ** j )
+		else:
+			lr = 0.02 * ( 0.99 ** j )
 		#######################################################################
 		######## L Step #######################################################
 		#######################################################################	
@@ -713,24 +723,19 @@ with tf.Session() as sess:
 		
 			###################################################################
 			####################### training batch in L #######################
+			# construct feed_dict
+			feed_dict = {}
+			for layer, _ in weights.items():
+				feed_dict.update({ wC_tf[layer]: wC_reshape[layer] })
+				feed_dict.update({ biasC_tf[layer]: biasC[layer] })
+				feed_dict.update({ lamda_tf[layer]: lamda[layer] })
+				feed_dict.update({ lamda_bias_tf[layer]: lamda_bias[layer] })
+			feed_dict.update({	x: X_batch,
+						 		y: y_batch,
+						 		learning_rate: lr,
+						 		momentum_tf: momentum,
+						 		mu_tf: mu }),
 			# train on batch
-			feed_dict = {x: X_batch,
-						 y: y_batch,
-						 learning_rate: lr,
-						 momentum_tf: momentum,
-						 mu_tf: mu,
-						 wC_tf['fc1']: wC_reshape['fc1'],
-						 wC_tf['fc2']: wC_reshape['fc2'],
-						 wC_tf['out']: wC_reshape['out'],
-						 biasC_tf['fc1']: biasC['fc1'],
-						 biasC_tf['fc2']: biasC['fc2'],
-						 biasC_tf['out']: biasC['out'],
-						 lamda_tf['fc1']: lamda['fc1'],
-						 lamda_tf['fc2']: lamda['fc2'],
-						 lamda_tf['out']: lamda['out'],
-						 lamda_bias_tf['fc1']: lamda_bias['fc1'],
-						 lamda_bias_tf['fc2']: lamda_bias['fc2'],
-						 lamda_bias_tf['out']: lamda_bias['out']}
 			train_L_step.run(feed_dict)
 			
 			if index_minibatch == 0:
@@ -758,45 +763,28 @@ with tf.Session() as sess:
 				print('step: {}, test loss: {}, test acuracy: {}' \
 							.format(i, test_loss, test_accuracy) )
 			# reference weight and bias
-			w_bar = sess.run(W)
-			bias_bar = sess.run(bias)
+			w_bar = sess.run(weights)
+			bias_bar = sess.run(biases)
 		######################################################################
 		####################### accuracy using w #############################
-		feed_dict = {	wC_tf['fc1']: wC_reshape['fc1'],
-						wC_tf['fc2']: wC_reshape['fc2'],
-						wC_tf['out']: wC_reshape['out'],
-						biasC_tf['fc1']: biasC['fc1'],
-						biasC_tf['fc2']: biasC['fc2'],
-						biasC_tf['out']: biasC['out'],
-						lamda_tf['fc1']: lamda['fc1'],
-						lamda_tf['fc2']: lamda['fc2'],
-						lamda_tf['out']: lamda['out'],
-						lamda_bias_tf['fc1']: lamda_bias['fc1'],
-						lamda_bias_tf['fc2']: lamda_bias['fc2'],
-						lamda_bias_tf['out']: lamda_bias['out'],
-						mu_tf: mu,
-						x: data.validation.images, 
-						y: data.validation.labels }
+		feed_dict = {}
+		for layer, _ in weights.items():
+			feed_dict.update({wC_tf[layer]: wC_reshape[layer]})
+			feed_dict.update({biasC_tf[layer]: biasC[layer]})
+			feed_dict.update({lamda_tf[layer]: lamda[layer]})
+			feed_dict.update({lamda_bias_tf[layer]: lamda_bias[layer]})
+		feed_dict.update({	mu_tf: mu,
+							x: data.validation.images, 
+							y: data.validation.labels})
+
 		val_loss, val_accuracy = \
 		sess.run([loss_L_step, accuracy], feed_dict = feed_dict)
 		val_loss_L[j] = val_loss
 		val_error_L[j] = 1 - val_accuracy
 
-		feed_dict = {	wC_tf['fc1']: wC_reshape['fc1'],
-						wC_tf['fc2']: wC_reshape['fc2'],
-						wC_tf['out']: wC_reshape['out'],
-						biasC_tf['fc1']: biasC['fc1'],
-						biasC_tf['fc2']: biasC['fc2'],
-						biasC_tf['out']: biasC['out'],
-						lamda_tf['fc1']: lamda['fc1'],
-						lamda_tf['fc2']: lamda['fc2'],
-						lamda_tf['out']: lamda['out'],
-						lamda_bias_tf['fc1']: lamda_bias['fc1'],
-						lamda_bias_tf['fc2']: lamda_bias['fc2'],
-						lamda_bias_tf['out']: lamda_bias['out'],
-						mu_tf: mu,
-						x: data.test.images, 
-						y: data.test.labels }
+		feed_dict.update({	x: data.test.images, 
+							y: data.test.labels})
+	
 		test_loss, test_accuracy = \
 		sess.run([loss_L_step, accuracy], feed_dict = feed_dict)
 		test_loss_L[j] = test_loss
@@ -834,27 +822,19 @@ with tf.Session() as sess:
 		
 		######################################################################
 		####################### accuracy using wc ############################
-		feed_dict = {   wC_tf['fc1']: wC_reshape['fc1'],
-						wC_tf['fc2']: wC_reshape['fc2'],
-						wC_tf['out']: wC_reshape['out'],
-						biasC_tf['fc1']: biasC['fc1'],
-						biasC_tf['fc2']: biasC['fc2'],
-						biasC_tf['out']: biasC['out'],
-						x: data.validation.images, 
-						y: data.validation.labels }
+		feed_dict = {}
+		for layer, _ in weights.items():
+			feed_dict.update({wC_tf[layer]: wC_reshape[layer]})
+			feed_dict.update({biasC_tf[layer]: biasC[layer]})
+		feed_dict.update({	x: data.validation.images, 
+							y: data.validation.labels })
 
 		val_loss, val_accuracy = \
 			sess.run([loss_compression, accuracy_compression], 
 							feed_dict = feed_dict)
 
-		feed_dict = {   wC_tf['fc1']: wC_reshape['fc1'],
-						wC_tf['fc2']: wC_reshape['fc2'],
-						wC_tf['out']: wC_reshape['out'],
-						biasC_tf['fc1']: biasC['fc1'],
-						biasC_tf['fc2']: biasC['fc2'],
-						biasC_tf['out']: biasC['out'],
-						x: data.test.images, 
-						y: data.test.labels }
+		feed_dict.update({	x: data.test.images, 
+							y: data.test.labels })
 
 		val_loss_C[j] = val_loss
 		val_error_C[j] = 1 - val_accuracy
@@ -910,7 +890,7 @@ for layer, _ in w_bar.items():
 	tempZ_mat[np.arange(tempZ.size), tempZ] = 1
 	Z_bias_matrix[layer] = tempZ_mat
 
-total_minibatches = 20000
+total_minibatches = 40000
 num_epoch_LC_ret = total_minibatches // num_minibatches_data
 epoch_LC_ret_vec = np.array(range(num_epoch_LC_ret+1)) 
 train_loss_LC_ret = np.zeros(num_epoch_LC_ret+1)
@@ -922,15 +902,15 @@ test_error_LC_ret = np.zeros(num_epoch_LC_ret+1)
 
 ################### TO SAVE MODEL ##################
 model_file_name = 'LC_ret_model_k_' + str(k)
-model_file_path = './model/' + model_file_name 
+model_file_path = './model_lenet_5/' + model_file_name 
 
 with tf.Session() as sess:
 	sess.run(init)
-	feed_dict = {
-		codebook_placeholder_tf['fc1']: C['fc1'],
-		codebook_placeholder_tf['fc2']: C['fc2'],
-		codebook_placeholder_tf['out']: C['out']
-	}
+	
+	feed_dict = {}
+	for layer, _ in weights.items():
+		feed_dict.update({codebook_placeholder_tf[layer]: C[layer]})
+	
 	sess.run(init_codebook_tf, feed_dict= feed_dict)
 	for i in range(total_minibatches):
 		index_minibatch = i % num_minibatches_data
@@ -941,25 +921,25 @@ with tf.Session() as sess:
 		# adjust learning rate
 		if i % learning_rate_stay_fixed == 0:
 			j = i // learning_rate_stay_fixed
-			lr = 0.0005 * learning_rate_decay ** j
+			if k > 8:
+				lr = 0.01 * learning_rate_decay ** j
+			else:
+				lr = 0.02 * learning_rate_decay ** j
 		# mini batch 
 		start_index = index_minibatch     * minibatch
 		end_index   = (index_minibatch+1) * minibatch
 		X_batch = X_train[start_index:end_index]
 		y_batch = y_train[start_index:end_index]
 		
-		feed_dict = {
-			Z_W_int_tf['fc1']: Z_W_matrix['fc1'],
-			Z_W_int_tf['fc2']: Z_W_matrix['fc2'],
-			Z_W_int_tf['out']: Z_W_matrix['out'],
-			Z_bias_int_tf['fc1']: Z_bias_matrix['fc1'],
-			Z_bias_int_tf['fc2']: Z_bias_matrix['fc2'],
-			Z_bias_int_tf['out']: Z_bias_matrix['out'],
-			x: X_batch,
-			y: y_batch,
-			learning_rate: lr,
-			momentum_tf: momentum
-		}
+		feed_dict = {}
+		for layer, _ in weights.items():
+			feed_dict.update({Z_W_int_tf[layer]: Z_W_matrix[layer]})
+			feed_dict.update({Z_bias_int_tf[layer]: Z_bias_matrix[layer]})
+		feed_dict.update({	x: X_batch,
+							y: y_batch,
+							learning_rate: lr,
+							momentum_tf: momentum})
+		
 		train_DC_ret_step.run(feed_dict = feed_dict)
 		############### LOSS AND ACCURACY EVALUATION ##########################
 		if index_minibatch == 0:
@@ -1034,7 +1014,7 @@ df_LC_ret = pd.DataFrame({	'train_loss_LC_ret': train_loss_LC_ret,
 							'test_loss_LC_ret': test_loss_LC_ret,
 							'test_error_LC_ret': test_error_LC_ret})
 
-file_pickle = './results/results_pickle_k_' + str(k) + '.pkl'
+file_pickle = './results_lenet_5/results_pickle_k_' + str(k) + '.pkl'
 with open(file_pickle,'wb') as f:
 	pickle.dump(C_DC,f)
 	pickle.dump(C_DC_ret,f)
@@ -1047,16 +1027,16 @@ with open(file_pickle,'wb') as f:
 	df_LC.to_pickle(f)
 	df_LC_ret.to_pickle(f)
 
-# import pickle
-# file_pickle = './results/results_pickle_k_' + str(k) + '.pkl'
-# with open(file_pickle,'rb') as f:
-# 	C_DC = pickle.load(f)
-# 	C_DC_ret = pickle.load(f)
-# 	C_LC = pickle.load(f)
-# 	C_LC_ret = pickle.load(f)
-# 	df_ref = pickle.load(f)
-# 	df_DC = pickle.load(f)
-# 	df_DC_ret = pickle.load(f)
-# 	df_L_train = pickle.load(f)
-# 	df_LC = pickle.load(f)
-# 	df_LC_ret = pickle.load(f)
+import pickle
+file_pickle = './results_lenet_5/results_pickle_k_' + str(k) + '.pkl'
+with open(file_pickle,'rb') as f:
+	C_DC = pickle.load(f)
+	C_DC_ret = pickle.load(f)
+	C_LC = pickle.load(f)
+	C_LC_ret = pickle.load(f)
+	df_ref = pickle.load(f)
+	df_DC = pickle.load(f)
+	df_DC_ret = pickle.load(f)
+	df_L_train = pickle.load(f)
+	df_LC = pickle.load(f)
+	df_LC_ret = pickle.load(f)
