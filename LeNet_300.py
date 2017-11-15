@@ -362,7 +362,7 @@ test_loss_ref = np.zeros(num_epoch_ref+1)
 test_error_ref = np.zeros(num_epoch_ref+1)
 
 ################### TO SAVE MODEL ##################
-model_file_name = 'reference_model_k_' + str(k)
+model_file_name = 'reference_model_k_' + str(k) + '.ckpt'
 model_file_path = './model/' + model_file_name 
 
 ############################## TRAIN LOOP #####################################
