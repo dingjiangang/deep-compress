@@ -4,7 +4,7 @@
 #$ -cwd
 #$ -N myjob
 #$ -j y
-#$ -o compress_lenet_5.qlog
+#$ -o compress_lenet_5_L_31.qlog
 #$ -l mem_free=64G
 #$ -pe smp 20
 #$ -V
