@@ -651,7 +651,7 @@ mu_0 = 9.75e-5
 a = 1.1
 max_iter_each_L_step = 4000
 LC_epoches = 31
-random_w_init = 1 # 0: random init, 1 if init with reference net
+random_w_init = 0 # 1: random init, 0: if init with reference net
 
 ################### TO SAVE TRAINING AND TEST LOSS AND ERROR ##################
 ################### FOR REFERENCE NET #########################################
