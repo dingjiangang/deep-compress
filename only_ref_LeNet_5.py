@@ -20,10 +20,6 @@ print('----------------------------------------------')
 print('architecture: LeNet-5 --- Data Set: MNIST')
 print('----------------------------------------------')
 
-print('----------------------------------------------')
-print('Compression Algorithm for k = {}' .format(k))
-print('----------------------------------------------')
-
 # input and output shape
 n_input   = data.train.images.shape[1]  # here MNIST data input (28,28)
 n_classes = data.train.labels.shape[1]  # here MNIST (0-9 digits)
@@ -239,7 +235,7 @@ init = tf.global_variables_initializer()
 ######## training data and neural net architecture with weights w #############
 ###############################################################################
 print('----------------------------------------------')
-print('TRAINGING REFERENCE NET for k = {}' .format(k))
+print('TRAINGING REFERENCE NET for LeNet-5')
 print('----------------------------------------------')
 ################### TO SAVE TRAINING AND TEST LOSS AND ERROR ##################
 ################### FOR REFERENCE NET #########################################
@@ -322,11 +318,11 @@ df_ref = pd.DataFrame({	'train_loss_ref' : train_loss_ref,
 						'test_error_ref': test_error_ref})
 
 
-file_pickle = './results_lenet_5/results_ref_pickle' + str(k) + '.pkl'
+file_pickle = './results_lenet_5/results_ref_pickle.pkl'
 with open(file_pickle,'wb') as f:
 	df_ref.to_pickle(f)
 
-weights_pickle = './results_lenet_5/weights_biases_ref_pickle' + str(k) + '.pkl'
+weights_pickle = './results_lenet_5/weights_biases_ref_pickle.pkl'
 
 with open(weights_pickle,'wb') as f:
 	pickle.dump(w_bar,f,protocol=pickle.HIGHEST_PROTOCOL)
