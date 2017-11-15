@@ -22,3 +22,10 @@ with open(file_pickle,'rb') as f:
 	df_L_train = pickle.load(f)
 	df_LC = pickle.load(f)
 	df_LC_ret = pickle.load(f)
+
+import matplotlib.pyplot as plt
+plots_folder = './plots'
+file_name = 'destination_path.eps'
+file_path = plots_folder + file_name
+
+plt.savefig(file_path, format='eps', dpi=300)
