@@ -12,14 +12,6 @@ import collections
 import pickle
 
 import pandas as pd
-import argparse
-# Set up argument parser
-ap = argparse.ArgumentParser()
-# Single positional argument, nargs makes it optional
-ap.add_argument('k', nargs='?', default=2)
-# codebook size
-k = int(ap.parse_args().k)
-
 
 from sklearn.cluster import KMeans
 from numpy import linalg as LA
@@ -261,7 +253,7 @@ test_loss_ref = np.zeros(num_epoch_ref+1)
 test_error_ref = np.zeros(num_epoch_ref+1)
 
 ################### TO SAVE MODEL ##################
-model_file_name = 'reference_model_' + str(k) + '.ckpt'
+model_file_name = 'reference_model_lenet_5.ckpt'
 model_file_path = './model_lenet_5/' + model_file_name 
 
 ############################## TRAIN LOOP #####################################
