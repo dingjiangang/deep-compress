@@ -129,13 +129,13 @@ weights = {
 # biases of LeNet-5 CNN -- tf tensors
 biases = {
     'conv1': tf.get_variable('b_conv1', shape=[K1],
-           			initializer=tf.contrib.layers.xavier_initializer()),
+           			initializer=tf.zeros_initializer()),
     'conv2': tf.get_variable('b_conv2', shape=[K3],
-           			initializer=tf.contrib.layers.xavier_initializer()),
+           			initializer=tf.zeros_initializer()),
     'fc': tf.get_variable('b_fc', shape=[n_hidden],
-           			initializer=tf.contrib.layers.xavier_initializer()),
+           			initializer=tf.zeros_initializer()),
     'out': tf.get_variable('b_out', shape=[n_classes],
-           			initializer=tf.contrib.layers.xavier_initializer()) 
+           			initializer=tf.zeros_initializer()) 
     # 'conv1': tf.Variable(tf.random_normal([K1])),
     # 'conv2': tf.Variable(tf.random_normal([K3])),
     # 'fc': tf.Variable(tf.random_normal([n_hidden])),
@@ -264,7 +264,7 @@ with tf.Session() as sess:
 		# adjust learning rate
 		if i % learning_rate_stay_fixed == 0:
 			j = i // learning_rate_stay_fixed
-			lr = 0.01 * 0.98 ** j
+			lr = 0.005 * 0.99 ** j
 		# mini batch 
 		start_index = index_minibatch     * minibatch
 		end_index   = (index_minibatch+1) * minibatch
