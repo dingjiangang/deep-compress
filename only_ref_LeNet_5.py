@@ -196,7 +196,7 @@ num_minibatches_data = data.train.images.shape[0] // minibatch
 lr = 0.02
 # Learning rate decay:  every 2000 minibatches
 learning_rate_decay = 0.99
-learning_rate_stay_fixed = 2000
+learning_rate_stay_fixed = 1000
 
 # Optimizer: Nesterov accelerated gradient with momentum 0.95
 # this is for training the reference net
@@ -264,7 +264,7 @@ with tf.Session() as sess:
 		# adjust learning rate
 		if i % learning_rate_stay_fixed == 0:
 			j = i // learning_rate_stay_fixed
-			lr = 0.02 * 0.99 ** j
+			lr = 0.01 * 0.98 ** j
 		# mini batch 
 		start_index = index_minibatch     * minibatch
 		end_index   = (index_minibatch+1) * minibatch
@@ -318,11 +318,11 @@ df_ref = pd.DataFrame({	'train_loss_ref' : train_loss_ref,
 						'test_error_ref': test_error_ref})
 
 
-file_pickle = './results_lenet_5/results_ref_pickle.pkl'
+file_pickle = './results_lenet_5/df_ref_lenet_5_pickle.pkl'
 with open(file_pickle,'wb') as f:
 	df_ref.to_pickle(f)
 
-weights_pickle = './results_lenet_5/weights_biases_ref_pickle.pkl'
+weights_pickle = './results_lenet_5/weights_biases_lenet_5_ref_pickle.pkl'
 
 with open(weights_pickle,'wb') as f:
 	pickle.dump(w_bar,f,protocol=pickle.HIGHEST_PROTOCOL)
