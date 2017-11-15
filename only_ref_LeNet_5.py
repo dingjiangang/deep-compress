@@ -173,7 +173,7 @@ def model(x,_W,_b):
     fc = tf.nn.dropout(fc, dropout_rate)
 
     output = tf.matmul(fc, _W['out']) + _b['out']
-    output = tf.nn.dropout(output, keep_prob = dropout_rate)
+    # output = tf.nn.dropout(output, keep_prob = dropout_rate)
     return output
 
 # Construct model
@@ -264,7 +264,7 @@ with tf.Session() as sess:
 		# adjust learning rate
 		if i % learning_rate_stay_fixed == 0:
 			j = i // learning_rate_stay_fixed
-			lr = 0.005 * 0.99 ** j
+			lr = 0.02 * 0.99 ** j
 		# mini batch 
 		start_index = index_minibatch     * minibatch
 		end_index   = (index_minibatch+1) * minibatch
