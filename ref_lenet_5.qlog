@@ -1,0 +1,12 @@
+Extracting ./data/train-images-idx3-ubyte.gz
+Extracting ./data/train-labels-idx1-ubyte.gz
+Extracting ./data/t10k-images-idx3-ubyte.gz
+Extracting ./data/t10k-labels-idx1-ubyte.gz
+----------------------------------------------
+architecture: LeNet-5 --- Data Set: MNIST
+----------------------------------------------
+----------------------------------------------
+Traceback (most recent call last):
+  File "only_ref_LeNet_5.py", line 24, in <module>
+    print('Compression Algorithm for k = {}' .format(k))
+NameError: name 'k' is not defined
