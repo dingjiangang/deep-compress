@@ -977,7 +977,7 @@ with tf.Session() as sess:
 	C_LC_ret = sess.run(codebook_tf, feed_dict = feed_dict)
 
 
-df_ref = pd.DataFrame({	'train_error_ref' : train_loss_ref,
+df_ref = pd.DataFrame({	'train_loss_ref' : train_loss_ref,
 						'train_error_ref': train_error_ref,
 						'val_loss_ref': val_loss_ref,
 						'val_error_ref': val_error_ref,
