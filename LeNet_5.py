@@ -1,4 +1,6 @@
 import tensorflow as tf
+tf.reset_default_graph()
+
 
 import input_MNIST_data
 from input_MNIST_data import shuffle_data
@@ -121,21 +123,21 @@ mu_tf = tf.placeholder("float")
 # weights of LeNet-5 CNN -- tf tensors
 weights = {
     # 5 x 5 convolution, 1 input image, 20 outputs
-    'conv1': tf.get_variable('w_conv1', shape=[F1, F1, D1, K1],
-           			initializer=tf.contrib.layers.xavier_initializer()),
+    'conv1': tf.get_variable('w_conv1', shape=[F1, F1, D1, K1]),
+           			#initializer=tf.contrib.layers.xavier_initializer()),
     # 'conv1': tf.Variable(tf.random_normal([F1, F1, D1, K1])),
     # 5x5 conv, 20 inputs, 50 outputs 
     #'conv2': tf.Variable(tf.random_normal([F3, F3, D3, K3])),
-    'conv2': tf.get_variable('w_conv2', shape=[F3, F3, D3, K3],
-           			initializer=tf.contrib.layers.xavier_initializer()),
+    'conv2': tf.get_variable('w_conv2', shape=[F3, F3, D3, K3]),
+           			#initializer=tf.contrib.layers.xavier_initializer()),
     # fully connected, 800 inputs, 500 outputs
     #'fc': tf.Variable(tf.random_normal([n_in_fc, n_hidden])),
-    'fc': tf.get_variable('w_fc', shape=[n_in_fc, n_hidden],
-           			initializer=tf.contrib.layers.xavier_initializer()),
+    'fc': tf.get_variable('w_fc', shape=[n_in_fc, n_hidden]),
+           			#initializer=tf.contrib.layers.xavier_initializer()),
     # 500 inputs, 10 outputs (class prediction)
     #'out': tf.Variable(tf.random_normal([n_hidden, n_classes]))
-    'out': tf.get_variable('w_out', shape=[n_hidden, n_classes],
-           			initializer=tf.contrib.layers.xavier_initializer())
+    'out': tf.get_variable('w_out', shape=[n_hidden, n_classes]),
+           			#initializer=tf.contrib.layers.xavier_initializer())
 }
 
 # biases of LeNet-5 CNN -- tf tensors
@@ -366,82 +368,25 @@ init = tf.global_variables_initializer()
 ######## training data and neural net architecture with weights w #############
 ###############################################################################
 print('----------------------------------------------')
-print('TRAINGING REFERENCE NET for k = {}' .format(k))
+print('LOADING MY PRETRAINED REFERENCE NET for LeNet-5')
 print('----------------------------------------------')
-################### TO SAVE TRAINING AND TEST LOSS AND ERROR ##################
-################### FOR REFERENCE NET #########################################
-num_epoch_ref = total_minibatches // num_minibatches_data
-epoch_ref_vec = np.array(range(num_epoch_ref+1)) 
-train_loss_ref = np.zeros(num_epoch_ref+1)
-train_error_ref = np.zeros(num_epoch_ref+1)
-val_loss_ref = np.zeros(num_epoch_ref+1)
-val_error_ref = np.zeros(num_epoch_ref+1)
-test_loss_ref = np.zeros(num_epoch_ref+1)
-test_error_ref = np.zeros(num_epoch_ref+1)
+################### TO LOAD REFERENCE MODEL ###################################
+############################## LOAD weights and biases ########################
+# model_file_name = 'reference_model_lenet_5.ckpt'
+# model_file_path = './model_lenet_5/' + model_file_name 
+# model_file_meta = model_file_path + '.meta'
 
-################### TO SAVE MODEL ##################
-model_file_name = 'reference_model_k_' + str(k)
-model_file_path = './model_lenet_5/' + model_file_name 
+# with tf.Session() as sess:
+# 	saver = tf.train.import_meta_graph(model_file_meta)
+# 	saver.restore(sess, model_file_path)
+# 	w_bar = sess.run(weights)
+# 	bias_bar = sess.run(biases)
 
-############################## TRAIN LOOP #####################################
-with tf.Session() as sess:
-	sess.run(init)
-	for i in range(total_minibatches):
-		index_minibatch = i % num_minibatches_data
-		epoch = i // num_minibatches_data		
-		# shuffle data at the begining of each epoch
-		if index_minibatch == 0:
-			X_train, y_train = shuffle_data(data)
-		# adjust learning rate
-		if i % learning_rate_stay_fixed == 0:
-			j = i // learning_rate_stay_fixed
-			if k > 8:
-				lr = 0.01 * 0.99 ** j
-			else:
-				lr = 0.02 * 0.99 ** j
-		# mini batch 
-		start_index = index_minibatch     * minibatch
-		end_index   = (index_minibatch+1) * minibatch
-		X_batch = X_train[start_index:end_index]
-		y_batch = y_train[start_index:end_index]
+weights_pickle = './results_lenet_5/weights_biases_lenet_5_ref_pickle.pkl'
 
-		train.run(feed_dict = { x: X_batch,
-					 			y: y_batch,
-								learning_rate: lr,
-								momentum_tf: momentum})
-		
-		############### LOSS AND ACCURACY EVALUATION ##########################
-		if index_minibatch == 0:
-			train_loss, train_accuracy = \
-					sess.run([loss, accuracy], feed_dict = {x: X_batch, 
-														    y: y_batch} )
-			train_loss_ref[epoch] = train_loss
-			train_error_ref[epoch] = 1 - train_accuracy
-
-			val_loss, val_accuracy = \
-			sess.run([loss, accuracy], feed_dict = {x: data.validation.images, 
-													y: data.validation.labels} )
-			val_loss_ref[epoch] = val_loss
-			val_error_ref[epoch] = 1 - val_accuracy
-
-			test_loss, test_accuracy = \
-			sess.run([loss, accuracy], feed_dict = {x: data.test.images, 
-													y: data.test.labels} )
-			test_loss_ref[epoch] = test_loss
-			test_error_ref[epoch] = 1 - test_accuracy
-
-			print('step: {}, train loss: {}, train acuracy: {}' \
-				.format(i, train_loss, train_accuracy) )
-			print('step: {}, val loss: {}, val acuracy: {}' \
-				.format(i, val_loss, val_accuracy) )
-			print('step: {}, test loss: {}, test acuracy: {}' \
-				.format(i, test_loss, test_accuracy) )
-		#train_loss_ref = sess.run(loss)
-		
-	save_path = saver.save(sess, model_file_path)
-	# reference weight and bias
-	w_bar = sess.run(weights)
-	bias_bar = sess.run(biases)
+with open(weights_pickle,'rb') as f:
+	w_bar = pickle.load(f)
+	bias_bar = pickle.load(f)
 
 ###############################################################################
 ################### learn codebook and assignments ############################
