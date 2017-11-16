@@ -1,3 +1,2 @@
-model_checkpoint_path: "DC_model_k_8"
-all_model_checkpoint_paths: "reference_model_k_8"
-all_model_checkpoint_paths: "DC_model_k_8"
+model_checkpoint_path: "reference_model_lenet_5.ckpt"
+all_model_checkpoint_paths: "reference_model_lenet_5.ckpt"
