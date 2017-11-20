@@ -419,7 +419,7 @@ for layer, _ in w.items():
 C_DC = C
 
 ################### TO SAVE DC MODEL ##################
-model_file_name = 'DC_model_k_' + str(k)
+model_file_name = 'DC_model_k_' + str(k) + '.ckpt'
 model_file_path = './model_lenet_5/' + model_file_name 
 
 ###############################################################################
@@ -503,7 +503,7 @@ test_loss_DC_ret = np.zeros(num_epoch_DC_ret+1)
 test_error_DC_ret = np.zeros(num_epoch_DC_ret+1)
 
 ################### TO SAVE MODEL ##################
-model_file_name = 'DC_ret_model_k_' + str(k)
+model_file_name = 'DC_ret_model_k_' + str(k) + '.ckpt'
 model_file_path = './model_lenet_5/' + model_file_name 
 
 with tf.Session() as sess:
@@ -522,10 +522,7 @@ with tf.Session() as sess:
 		# adjust learning rate
 		if i % learning_rate_stay_fixed == 0:
 			j = i // learning_rate_stay_fixed
-			if k > 8:
-				lr = 0.01 * 0.99 ** j
-			else:
-				lr = 0.02 * 0.99 ** j				
+			lr = 0.00001 * learning_rate_decay ** j			
 		# mini batch 
 		start_index = index_minibatch     * minibatch
 		end_index   = (index_minibatch+1) * minibatch
@@ -618,7 +615,7 @@ test_loss_C = np.zeros(LC_epoches)
 test_error_C = np.zeros(LC_epoches)
 
 ################### TO SAVE MODEL ##################
-model_file_name = 'LC_model_k_' + str(k)
+model_file_name = 'LC_model_k_' + str(k) + '.ckpt'
 model_file_path = './model_lenet_5/' + model_file_name 
 
 with tf.Session() as sess: 
@@ -846,7 +843,7 @@ test_loss_LC_ret = np.zeros(num_epoch_LC_ret+1)
 test_error_LC_ret = np.zeros(num_epoch_LC_ret+1)
 
 ################### TO SAVE MODEL ##################
-model_file_name = 'LC_ret_model_k_' + str(k)
+model_file_name = 'LC_ret_model_k_' + str(k) + '.ckpt'
 model_file_path = './model_lenet_5/' + model_file_name 
 
 with tf.Session() as sess:
@@ -866,10 +863,7 @@ with tf.Session() as sess:
 		# adjust learning rate
 		if i % learning_rate_stay_fixed == 0:
 			j = i // learning_rate_stay_fixed
-			if k > 8:
-				lr = 0.01 * learning_rate_decay ** j
-			else:
-				lr = 0.02 * learning_rate_decay ** j
+			lr = 0.00001 * learning_rate_decay ** j
 		# mini batch 
 		start_index = index_minibatch     * minibatch
 		end_index   = (index_minibatch+1) * minibatch
@@ -922,12 +916,12 @@ with tf.Session() as sess:
 	C_LC_ret = sess.run(codebook_tf, feed_dict = feed_dict)
 
 
-df_ref = pd.DataFrame({	'train_loss_ref' : train_loss_ref,
-						'train_error_ref': train_error_ref,
-						'val_loss_ref': val_loss_ref,
-						'val_error_ref': val_error_ref,
-						'test_loss_ref': test_loss_ref,
-						'test_error_ref': test_error_ref})
+# df_ref = pd.DataFrame({	'train_loss_ref' : train_loss_ref,
+# 						'train_error_ref': train_error_ref,
+# 						'val_loss_ref': val_loss_ref,
+# 						'val_error_ref': val_error_ref,
+# 						'test_loss_ref': test_loss_ref,
+# 						'test_error_ref': test_error_ref})
 
 df_DC = pd.DataFrame({	'val_loss_DC': val_loss_DC,
 						'val_error_DC': val_error_DC,
@@ -972,16 +966,16 @@ with open(file_pickle,'wb') as f:
 	df_LC.to_pickle(f)
 	df_LC_ret.to_pickle(f)
 
-import pickle
-file_pickle = './results_lenet_5/results_pickle_k_' + str(k) + '.pkl'
-with open(file_pickle,'rb') as f:
-	C_DC = pickle.load(f)
-	C_DC_ret = pickle.load(f)
-	C_LC = pickle.load(f)
-	C_LC_ret = pickle.load(f)
-	df_ref = pickle.load(f)
-	df_DC = pickle.load(f)
-	df_DC_ret = pickle.load(f)
-	df_L_train = pickle.load(f)
-	df_LC = pickle.load(f)
-	df_LC_ret = pickle.load(f)
+# import pickle
+# file_pickle = './results_lenet_5/results_pickle_k_' + str(k) + '.pkl'
+# with open(file_pickle,'rb') as f:
+# 	C_DC = pickle.load(f)
+# 	C_DC_ret = pickle.load(f)
+# 	C_LC = pickle.load(f)
+# 	C_LC_ret = pickle.load(f)
+# 	df_ref = pickle.load(f)
+# 	df_DC = pickle.load(f)
+# 	df_DC_ret = pickle.load(f)
+# 	df_L_train = pickle.load(f)
+# 	df_LC = pickle.load(f)
+# 	df_LC_ret = pickle.load(f)
