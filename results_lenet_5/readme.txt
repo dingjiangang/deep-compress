@@ -1,1 +1,1 @@
-a folder for saving pickle results for LeNet-5 
+a folder for saving pickle results for LeNet-5 — very small ret lr

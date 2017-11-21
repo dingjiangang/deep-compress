@@ -1,1 +1,0 @@
-a folder for saving tensorflow models for LeNet-5 CNN — smaller lr for retraining
