@@ -177,8 +177,8 @@ with tf.Session() as session:
 			if batch_idx % 100 == 0: 
 				print('train epoch: ', epoch, batch_idx, batch_res[1:])
 				validation_results = batch_res = session.run([ train_step, cross_entropy, accuracy ],
-						feed_dict = { 	x: data['validation-data']
-										y: data['validation-labels'] 
+						feed_dict = { 	x: data['validation-data'],
+										y: data['validation-labels'], 
 										is_training: False, 
 										keep_prob: 1.0 })
 				print('validation epoch: ', epoch, validation_results)
