@@ -14,4 +14,4 @@ export LD_LIBRARY_PATH=${CUDA_HOME}/lib64:$LD_LIBRARY_PATH
 
 module load anaconda3
 source activate jacobenv
-python DenseNet_only_ref.py
+python DenseNet_only_ref.py >> DenseNet_ref.txt

@@ -70,7 +70,7 @@ def run_in_batch_avg(session, tensors, batch_placeholders, feed_dict={}, batch_s
 	res = [ 0 ] * len(tensors)
 	batch_tensors = [ (placeholder, feed_dict[ placeholder ]) for placeholder in batch_placeholders ]										
 	total_size = len(batch_tensors[0][1])																																								
-	batch_count = (total_size + batch_size - 1) / batch_size
+	batch_count = (total_size + batch_size - 1) // batch_size
 	for batch_idx in range(batch_count):
 		current_batch_size = None																																													
 		for (placeholder, tensor) in batch_tensors:
