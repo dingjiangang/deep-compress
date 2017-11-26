@@ -66,8 +66,6 @@ data = {'train-data': X_train,
 ####################### MODEL ##################################################
 ################################################################################
 
-
-
 def run_in_batch_avg(session, tensors, batch_placeholders, feed_dict={}, batch_size=200):															
 	res = [ 0 ] * len(tensors)
 	batch_tensors = [ (placeholder, feed_dict[ placeholder ]) for placeholder in batch_placeholders ]										
@@ -178,8 +176,8 @@ with tf.Session() as session:
 								keep_prob: 0.8 })
 			if batch_idx % 100 == 0: 
 				print(epoch, batch_idx, batch_res[1:])
-
-		save_path = saver.save(session, 'densenet_%d.ckpt' % epoch)
+		if epoch in [50,100,150,200,250,300]:
+			save_path = saver.save(session, 'densenet_%d.ckpt' % epoch)
 		test_results = run_in_batch_avg(session,[cross_entropy,accuracy],[x,y],
 				feed_dict = { 	x: data['test-data'], 
 								y: data['test-labels'], 
