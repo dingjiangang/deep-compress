@@ -178,9 +178,9 @@ with tf.Session() as session:
 				print('train epoch: ', epoch, batch_idx, batch_res[1:])
 				validation_results = run_in_batch_avg(session,[cross_entropy,accuracy],[x,y],
 						feed_dict = { 	x: data['vaidation-data'], 
-								y: 'validation-labels', 
-								is_training: False, 
-								keep_prob: 1.})
+										y: data['validation-labels'], 
+										is_training: False, 
+										keep_prob: 1.})
 				print('validation epoch: ', epoch, batch_res[1:], validation_results)
 
 
