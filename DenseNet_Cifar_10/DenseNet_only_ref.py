@@ -57,7 +57,7 @@ print("Validation: ", np.shape(X_validation), np.shape(y_validation))
 print("Test:", np.shape(X_test), np.shape(y_test))
 data = {'train-data': X_train,
 		'train-labels': y_train,
-		'vaidation-data': X_validation,
+		'validation-data': X_validation,
 		'validation-labels': y_validation,
 		'test-data': X_test,
 		'test-labels': y_test }
@@ -176,12 +176,12 @@ with tf.Session() as session:
 								keep_prob: 0.8 })
 			if batch_idx % 100 == 0: 
 				print('train epoch: ', epoch, batch_idx, batch_res[1:])
-				validation_results = run_in_batch_avg(session,[cross_entropy,accuracy],[x,y],
-						feed_dict = { 	x: data['vaidation-data'], 
-										y: data['validation-labels'], 
+				validation_results = batch_res = session.run([ train_step, cross_entropy, accuracy ],
+						feed_dict = { 	x: data['validation-data']
+										y: data['validation-labels'] 
 										is_training: False, 
-										keep_prob: 1.})
-				print('validation epoch: ', epoch, batch_res[1:], validation_results)
+										keep_prob: 1.0 })
+				print('validation epoch: ', epoch, validation_results)
 
 
 		if epoch in [50,100,150,200,250,300]:
@@ -191,7 +191,7 @@ with tf.Session() as session:
 								y: data['test-labels'], 
 								is_training: False, 
 								keep_prob: 1. })
-		print('test results: ', epoch, batch_res[1:], test_results)
+		print('test results: ', epoch, test_results)
 
 # #def run():
 
