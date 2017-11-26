@@ -175,7 +175,17 @@ with tf.Session() as session:
 								is_training: True, 
 								keep_prob: 0.8 })
 			if batch_idx % 100 == 0: 
-				print(epoch, batch_idx, batch_res[1:])
+				print('train epoch: ', epoch, batch_idx, batch_res[1:])
+				feed_dict = { 	x: data['vaidation-data'], 
+								y: 'validation-labels', 
+								lr: learning_rate, 
+								is_training: True, 
+								keep_prob: 1.0}
+				validation_results = \
+					run_in_batch_avg(session,[cross_entropy,accuracy],[x,y],feed_dict=feed_dict)
+				print('validation epoch: ', epoch, batch_res[1:], validation_results)
+
+
 		if epoch in [50,100,150,200,250,300]:
 			save_path = saver.save(session, 'densenet_%d.ckpt' % epoch)
 		test_results = run_in_batch_avg(session,[cross_entropy,accuracy],[x,y],
@@ -183,7 +193,7 @@ with tf.Session() as session:
 								y: data['test-labels'], 
 								is_training: False, 
 								keep_prob: 1. })
-		print(epoch, batch_res[1:], test_results)
+		print('test results: ', epoch, batch_res[1:], test_results)
 
 # #def run():
 
