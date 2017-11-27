@@ -1,3 +1,10 @@
+# import os
+# os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"   # see issue #152
+# os.environ["CUDA_VISIBLE_DEVICES"]="0"
+
+# from tensorflow.python.client import device_lib
+# print(device_lib.list_local_devices())
+
 import tensorflow as tf
 ###############################################################################
 ######## training data and neural net architecture with weights w #############
@@ -446,9 +453,9 @@ with tf.Session() as session:
 			if index_minibatch == 0:
 				train_loss, train_accuracy = \
 			 			sess.run([loss_L_step, accuracy], feed_dict = feed_dict)
-			 	train_loss_L[epoch] = train_loss
-			 	train_error_L[epoch] = 1 - train_accuracy
-			 	print('L epoch: {}, train loss: {}, train error: {}' \
+				train_loss_L[epoch] = train_loss
+				train_error_L[epoch] = 1 - train_accuracy
+				print('L epoch: {}, train loss: {}, train error: {}' \
 							.format(epoch, train_loss_L[epoch], train_error_L[epoch]) )
 				validation_results = run_in_batch_avg(
 						sess,
