@@ -13,8 +13,8 @@ print('---------------------------------------------------')
 print('LOADING MY PRETRAINED REFERENCE NET for DenseNet-40')
 print('---------------------------------------------------')
 ################### TO LOAD MODEL #############################################
-model_file_path = './densenet_150.ckpt'
-model_file_meta = './densenet_150.ckpt.meta'
+model_file_path = './densenet_300.ckpt'
+model_file_meta = './densenet_300.ckpt.meta'
 ############################## LOAD weights and biases ########################
 ref_variables = {}
 ref_values = {}
