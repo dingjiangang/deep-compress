@@ -560,7 +560,7 @@ with tf.Session() as sess:
 
 		norm_compression = 0
 		for layer, _ in w.items():
-			norm_compression += LA.norm(L_weights_values[layer] - wC[layer])
+			norm_compression += LA.norm(w[layer] - wC[layer])
 
 		print('norm of compression: {} ' .format(norm_compression) )
 
