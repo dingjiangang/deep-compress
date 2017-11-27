@@ -352,756 +352,219 @@ with tf.Session() as sess:
  								y: data['test-labels'], 
  								is_training: False, 
  								keep_prob: 1. })
-	print('test results: ', test_results)
-
-	# feed_dict.update({ 	x: data.validation.images,
-	# 			   		y: data.validation.labels})
-	
-	# val_loss, val_accuracy = \
-	# 		sess.run([loss_compression, accuracy_compression], 
-	# 									feed_dict = feed_dict )
-	# val_loss_DC = val_loss
-	# val_error_DC = 1 - val_accuracy
-
-	# feed_dict.update({ 	x: data.test.images,
-	# 			   		y: data.test.labels})
-
-	# test_loss, test_accuracy = \
-	# sess.run([loss_compression, accuracy_compression], 
-	# 								feed_dict = feed_dict)
-	# test_loss_DC= test_loss
-	# test_error_DC = 1 - test_accuracy
-	# print('val loss: {}, val acuracy: {}' \
-	# 			.format(val_loss, val_accuracy) )
-	# print('test loss: {}, test acuracy: {}' \
-	# 			.format(test_loss, test_accuracy) )
-
-	# save_path = saver.save(sess, model_file_path)
+	print('test results for DC: ', test_results)
 
 
-
-# with tf.Session() as session:
-# 	batch_size = 64
-# 	learning_rate = 0.01
-# 	session.run(tf.global_variables_initializer())
-# 	saver = tf.train.Saver()
-# 	train_data, train_labels = data['train-data'], data['train-labels']
-# 	batch_count = len(train_data) // batch_size
-# 	batches_data = np.split(train_data[:batch_count * batch_size], batch_count)
-# 	batches_labels = np.split(train_labels[:batch_count * batch_size], batch_count)
-# 	print("Batch per epoch: ", batch_count)
-# 	for epoch in range(1, 1+300):
-# 		if epoch == 150:
-# 			learning_rate = 0.01
-# 		if epoch == 225:
-# 			learning_rate = 0.001
-# 		for batch_idx in range(batch_count):
-# 			x_, y_ = batches_data[batch_idx], batches_labels[batch_idx]
-# 			batch_res = session.run([ train_step, cross_entropy, accuracy ],
-# 				feed_dict = { 	x: x_, 
-# 								y: y_, 
-# 								lr: learning_rate, 
-# 								is_training: True, 
-# 								keep_prob: 0.8 })
-# 			if batch_idx % 100 == 0: 
-# 				print('train epoch: ', epoch, batch_idx, batch_res[1:])
-# 				validation_results = run_in_batch_avg(session,[cross_entropy,accuracy],[x,y],
-# 						feed_dict = { 	x: data['validation-data'], 
-# 										y: data['validation-labels'], 
-# 										is_training: False, 
-# 										keep_prob: 1. })
-# 				print('validation epoch: ', epoch, validation_results)
-
-
-# 		if epoch in [50,100,150,200,250,300]:
-# 			save_path = saver.save(session, 'densenet_%d.ckpt' % epoch)
-# 		test_results = run_in_batch_avg(session,[cross_entropy,accuracy],[x,y],
-# 				feed_dict = { 	x: data['test-data'], 
-# 								y: data['test-labels'], 
-# 								is_training: False, 
-# 								keep_prob: 1. })
-# 		print('test results: ', epoch, test_results)
-
-# # REFERENCE MODEL Parameters -- for training the Reference model: 
-
-# # Batch size
-# minibatch = 512
-# # Total minibatches
-# total_minibatches = 100000
-# # number of minibatches in data
-# num_minibatches_data = data.train.images.shape[0] // minibatch
-
-# # Learning rate
-# lr = 0.01
-# # Learning rate decay:  every 2000 minibatches
-# learning_rate_decay = 0.99
-# learning_rate_stay_fixed = 2000
-
-# # Optimizer: Nesterov accelerated gradient with momentum 0.95
-# # this is for training the reference net
-# momentum = 0.9
-
-# optimizer = tf.train.MomentumOptimizer(
-# 	learning_rate = learning_rate,
-# 	momentum = momentum_tf,
-# 	use_locking=False,
-# 	name='Momentum',
-# 	use_nesterov=True)
-
-# GATE_NONE = 0
-# GATE_OP = 1
-# GATE_GRAPH = 2
-# # GATE_OP:
-# # For each Op, make sure all gradients are computed before
-# # they are used.  This prevents race conditions for Ops that generate gradients
-# # for multiple inputs where the gradients depend on the inputs.
-# train = optimizer.minimize(
-#     loss,
-#     global_step=None,
-#     var_list=None,
-#     gate_gradients=GATE_OP,
-#     aggregation_method=None,
-#     colocate_gradients_with_ops=False,
-#     name='train',
-#     grad_loss=None)
-
-
-# saver = tf.train.Saver()
-
-# train_L_step = optimizer.minimize(
-#     loss_L_step,
-#     global_step=None,
-#     var_list=None,
-#     gate_gradients=GATE_OP,
-#     aggregation_method=None,
-#     colocate_gradients_with_ops=False,
-#     name='train_L_step',
-#     grad_loss=None)
-
-# train_DC_ret_step = optimizer.minimize(
-#     loss_DC_ret,
-#     global_step=None,
-#     var_list=None,
-#     gate_gradients=GATE_OP,
-#     aggregation_method=None,
-#     colocate_gradients_with_ops=False,
-#     name='train_L_step',
-#     grad_loss=None)
-
-# init = tf.global_variables_initializer()
-
-# ###############################################################################
-# ######## training data and neural net architecture with weights w #############
-# ###############################################################################
-# print('----------------------------------------------')
-# print('LOADING MY PRETRAINED REFERENCE NET for LeNet-5')
-# print('----------------------------------------------')
-# ################### TO LOAD REFERENCE MODEL ###################################
-# ############################## LOAD weights and biases ########################
-# # model_file_name = 'reference_model_lenet_5.ckpt'
-# # model_file_path = './model_lenet_5/' + model_file_name 
-# # model_file_meta = model_file_path + '.meta'
-
-# # with tf.Session() as sess:
-# # 	saver = tf.train.import_meta_graph(model_file_meta)
-# # 	saver.restore(sess, model_file_path)
-# # 	w_bar = sess.run(weights)
-# # 	bias_bar = sess.run(biases)
-
-# weights_pickle = './results_lenet_5/weights_biases_lenet_5_ref_pickle.pkl'
-
-# with open(weights_pickle,'rb') as f:
-# 	w_bar = pickle.load(f)
-# 	bias_bar = pickle.load(f)
-
-# ###############################################################################
-# ################### learn codebook and assignments ############################
-# ###############################################################################
-# # flatten the weights and concatenate bias for each layer
-# w = {}
-# for layer, weight_matrix in w_bar.items():
-# 	wf = weight_matrix.flatten()
-# 	wf = np.concatenate( (wf , bias_bar[layer]) , axis=0)
-# 	w[layer] = wf.reshape(-1 , 1)
-
-# # dictionary to save the kmeans output for each layer 
-# kmeans = {}
-# # codebook of each layer i.e. centers of kmeans
-# C = {}
-# # assignments i.e. labels of kmeans
-# Z = {}
-# # quantized reference net i.e. prediction of kmeans
-# wC = {}
-
-
-# # Kmeans
-# for layer, _ in w.items():
-# 	kmeans[layer] = KMeans(n_clusters=k, random_state=0).fit(w[layer])
-# 	C[layer] = kmeans[layer].cluster_centers_ 
-# 	Z[layer] = kmeans[layer].labels_
-# 	# quantize reference net
-# 	wC[layer]= C[layer][Z[layer]]
-
-# C_DC = C
-
-# ################### TO SAVE DC MODEL ##################
-# model_file_name = 'DC_model_k_' + str(k) + '.ckpt'
-# model_file_path = './model_lenet_5/' + model_file_name 
-
-# ###############################################################################
-# ########################## DC = Kmeans(w_bar) #################################
-# ###############################################################################
-# ####################### reshape weights #######################################
-# print('----------------------------------------------')
-# print('DC NET for k = {}' .format(k))
-# print('----------------------------------------------')
-
-# wC_reshape = {}
-# biasC = {}
-# for layer, _ in w_bar.items():
-# 	wC_reshape[layer] = wC[layer][0:w_bar[layer].size].reshape(w_bar[layer].shape)
-# 	biasC[layer] = wC[layer][w_bar[layer].size:].reshape(-1)
-
-# with tf.Session() as sess:
-# 	sess.run(init)
-# 	# construct feed_dict
-# 	feed_dict = {}
-# 	for layer, _ in weights.items():
-# 		feed_dict.update({ wC_tf[layer]: wC_reshape[layer] })
-# 		feed_dict.update({ biasC_tf[layer]: biasC[layer] })
-# 	feed_dict.update({ 	x: data.validation.images,
-# 				   		y: data.validation.labels})
-	
-# 	val_loss, val_accuracy = \
-# 			sess.run([loss_compression, accuracy_compression], 
-# 										feed_dict = feed_dict )
-# 	val_loss_DC = val_loss
-# 	val_error_DC = 1 - val_accuracy
-
-# 	feed_dict.update({ 	x: data.test.images,
-# 				   		y: data.test.labels})
-
-# 	test_loss, test_accuracy = \
-# 	sess.run([loss_compression, accuracy_compression], 
-# 									feed_dict = feed_dict)
-# 	test_loss_DC= test_loss
-# 	test_error_DC = 1 - test_accuracy
-# 	print('val loss: {}, val acuracy: {}' \
-# 				.format(val_loss, val_accuracy) )
-# 	print('test loss: {}, test acuracy: {}' \
-# 				.format(test_loss, test_accuracy) )
-
-# 	save_path = saver.save(sess, model_file_path)
-
-# ###############################################################################
-# ############################## DC WITH RETRAINING #############################
-# ###############################################################################
-# print('----------------------------------------------')
-# print('DC WITH RETRAINING for k = {}' .format(k))
-# print('----------------------------------------------')
-
-# Z_W_matrix = {}
-
-# Z_bias_matrix = {}
-
-# # one hot matrix assignments for weights
-# for layer, _ in w_bar.items():
-# 	tempZ = Z[layer][0:w_bar[layer].size]
-# 	tempZ_mat = np.zeros([tempZ.size, k], dtype=np.int32)
-# 	tempZ_mat[np.arange(tempZ.size), tempZ] = 1
-# 	Z_W_matrix[layer] = tempZ_mat
-
-# # one hot matrix assignments for biases
-# for layer, _ in w_bar.items():
-# 	tempZ = Z[layer][w_bar[layer].size:]
-# 	tempZ_mat = np.zeros([tempZ.size, k], dtype=np.int32)
-# 	tempZ_mat[np.arange(tempZ.size), tempZ] = 1
-# 	Z_bias_matrix[layer] = tempZ_mat
-
-# total_minibatches = 40000
-# num_epoch_DC_ret = total_minibatches // num_minibatches_data
-# epoch_DC_ret_vec = np.array(range(num_epoch_DC_ret+1)) 
-# train_loss_DC_ret = np.zeros(num_epoch_DC_ret+1)
-# train_error_DC_ret = np.zeros(num_epoch_DC_ret+1)
-# val_loss_DC_ret	 = np.zeros(num_epoch_DC_ret+1)
-# val_error_DC_ret = np.zeros(num_epoch_DC_ret+1)
-# test_loss_DC_ret = np.zeros(num_epoch_DC_ret+1)
-# test_error_DC_ret = np.zeros(num_epoch_DC_ret+1)
-
-# ################### TO SAVE MODEL ##################
-# model_file_name = 'DC_ret_model_k_' + str(k) + '.ckpt'
-# model_file_path = './model_lenet_5/' + model_file_name 
-
-# with tf.Session() as sess:
-# 	sess.run(init)
-	
-# 	feed_dict = {}
-# 	for layer, _ in weights.items():
-# 		feed_dict.update({ codebook_placeholder_tf[layer]: C[layer] })
-# 	sess.run(init_codebook_tf, feed_dict= feed_dict)
-# 	for i in range(total_minibatches):
-# 		index_minibatch = i % num_minibatches_data
-# 		epoch = i // num_minibatches_data		
-# 		# shuffle data at the begining of each epoch
-# 		if index_minibatch == 0:
-# 			X_train, y_train = shuffle_data(data)
-# 		# adjust learning rate
-# 		if i % learning_rate_stay_fixed == 0:
-# 			j = i // learning_rate_stay_fixed
-# 			lr = 0.000001 * learning_rate_decay ** j			
-# 		# mini batch 
-# 		start_index = index_minibatch     * minibatch
-# 		end_index   = (index_minibatch+1) * minibatch
-# 		X_batch = X_train[start_index:end_index]
-# 		y_batch = y_train[start_index:end_index]
-		
-# 		# construct feed_dict
-# 		feed_dict = {}
-# 		for layer, _ in weights.items():
-# 			feed_dict.update({Z_W_int_tf[layer]: Z_W_matrix[layer]})
-# 			feed_dict.update({Z_bias_int_tf[layer]: Z_bias_matrix[layer]})
-# 		feed_dict.update({	x: X_batch,
-# 							y: y_batch,
-# 							learning_rate: lr,
-# 							momentum_tf: momentum})
-	
-# 		train_DC_ret_step.run(feed_dict = feed_dict)
-# 		############### LOSS AND ACCURACY EVALUATION ##########################
-# 		if index_minibatch == 0:
-# 			train_loss, train_accuracy = \
-# 					sess.run([loss_DC_ret, accuracy_DC_ret], feed_dict = feed_dict )
-# 			train_loss_DC_ret[epoch] = train_loss
-# 			train_error_DC_ret[epoch] = 1 - train_accuracy
-
-# 			feed_dict.update( { x: data.validation.images, 
-# 								y: data.validation.labels} )
-# 			val_loss, val_accuracy = \
-# 			sess.run([loss_DC_ret, accuracy_DC_ret], feed_dict = feed_dict )
-# 			val_loss_DC_ret[epoch] = val_loss
-# 			val_error_DC_ret[epoch] = 1 - val_accuracy
-
-# 			feed_dict.update( { x: data.test.images, 
-# 								y: data.test.labels} )
-
-# 			test_loss, test_accuracy = \
-# 			sess.run([loss_DC_ret, accuracy_DC_ret], feed_dict = feed_dict)
-# 			test_loss_DC_ret[epoch] = test_loss
-# 			test_error_DC_ret[epoch] = 1 - test_accuracy
-
-# 			print('step: {}, train loss: {}, train acuracy: {}' \
-# 							.format(i, train_loss, train_accuracy) )
-# 			print('step: {}, val loss: {}, val acuracy: {}' \
-# 							.format(i, val_loss, val_accuracy) )
-# 			print('step: {}, test loss: {}, test acuracy: {}' \
-# 							.format(i, test_loss, test_accuracy) )
-
-# 		#train_loss_ref = sess.run(loss)
-		
-# 	save_path = saver.save(sess, model_file_path)
-# 	# reference weight and bias
-# 	C_DC_ret = sess.run(codebook_tf, feed_dict = feed_dict)
-
-
-# ###############################################################################
-# ###############################################################################
-# # initilize lambda == python reserved lambda so let's use lamda
-# lamda = {}
-# lamda_bias = {}
-# for layer, _ in w_bar.items():
-# 	lamda[layer] = np.zeros(w_bar[layer].shape)
-# 	lamda_bias[layer] = np.zeros(bias_bar[layer].shape).reshape(-1)
-
-# ###############################################################################
-# ####################################### LC ####################################
-# momentum = 0.95
-# # mu parameters
-# mu_0 = 9.75e-5
-# a = 1.1
-# max_iter_each_L_step = 4000
-# LC_epoches = 31
-# random_w_init = 0 # 1: random init, 0: if init with reference net
+	test_loss_DC = test_results[0]
+	test_error_DC = 1-test_results[1]
+###############################################################################
+####################################### LC ####################################
+# mu parameters
+mu_0 = 0.0001
+a = 2.0
+max_iter_each_L_step = 20
+LC_epoches = 2
+batch_size = 64
+minibatch = batch_size
+batch_count = len(train_data) // batch_size
 
 # ################### TO SAVE TRAINING AND TEST LOSS AND ERROR ##################
 # ################### FOR REFERENCE NET #########################################
-# num_epoch_in_each_L_train = max_iter_each_L_step // num_minibatches_data
-# num_epoch_L_train = LC_epoches * ( num_epoch_in_each_L_train + 1)
-# epoch_L_train_vec = np.array(range(num_epoch_L_train))
-# epoch_LC_vec = np.array(range(LC_epoches)) 
-# train_loss_L = np.zeros(num_epoch_L_train)
-# train_error_L = np.zeros(num_epoch_L_train)
+num_epoch_in_each_L_train = max_iter_each_L_step // batch_count
+num_epoch_L_train = LC_epoches * ( num_epoch_in_each_L_train + 1)
+epoch_L_train_vec = np.array(range(num_epoch_L_train))
+epoch_LC_vec = np.array(range(LC_epoches)) 
+train_loss_L = np.zeros(num_epoch_L_train + 1)
+train_error_L = np.zeros(num_epoch_L_train + 1)
+val_loss_L = np.zeros(num_epoch_L_train + 1)
+val_error_L = np.zeros(num_epoch_L_train + 1)
 
-# val_loss_L = np.zeros(LC_epoches)
-# val_error_L = np.zeros(LC_epoches)
-# test_loss_L = np.zeros(LC_epoches)
-# test_error_L = np.zeros(LC_epoches)
+test_loss_L = np.zeros(LC_epoches)
+test_error_L = np.zeros(LC_epoches)
 
-# val_loss_C = np.zeros(LC_epoches)
-# val_error_C = np.zeros(LC_epoches)
-# test_loss_C = np.zeros(LC_epoches)
-# test_error_C = np.zeros(LC_epoches)
-
-# ################### TO SAVE MODEL ##################
-# model_file_name = 'LC_model_k_' + str(k) + '.ckpt'
-# model_file_path = './model_lenet_5/' + model_file_name 
-
-# with tf.Session() as sess: 
-# 	###########################################################################
-# 	######## Initilize weights and bias #######################################
-# 	if random_w_init:
-# 		# initilize weights and bias randomly
-# 		sess.run(init)
-# 	else:
-# 		sess.run(init)
-# 		# initilize weights and bias with reference net
-# 		feed_dict = {}
-# 		for layer, _ in weights.items():
-# 			feed_dict.update({w_init_placeholder[layer]: w_bar[layer]})
-# 			feed_dict.update({bias_init_placeholder[layer]: bias_bar[layer]})
-
-# 		sess.run([w_init,bias_init], feed_dict=feed_dict)
-	
-# 	for j in range(LC_epoches):
-# 		print('L step {} : ' .format(j))
-# 		# adjust mu
-# 		mu = mu_0 * ( a ** j )
-# 		# adjust learning rate
-# 		if k > 8:
-# 			lr = 0.01 * ( 0.98 ** j )
-# 		else:
-# 			lr = 0.02 * ( 0.98 ** j )
-# 		#######################################################################
-# 		######## L Step #######################################################
-# 		#######################################################################	
-# 		print('----------------------------------------------')
-# 		print('L STEP #{} for k = {}' .format(j,k))
-# 		print('----------------------------------------------')
-
-# 		# variable.initialized_value() ?
-# 		for i in range(max_iter_each_L_step):
-# 			index_minibatch = i % num_minibatches_data
-# 			epoch = i // num_minibatches_data		
-# 			# shuffle data at the begining of each epoch
-# 			if index_minibatch == 0:
-# 				X_train, y_train = shuffle_data(data)
-# 			# mini batch 
-# 			start_index = index_minibatch     * minibatch
-# 			end_index   = (index_minibatch+1) * minibatch
-# 			X_batch = X_train[start_index:end_index]
-# 			y_batch = y_train[start_index:end_index]
-		
-# 			###################################################################
-# 			####################### training batch in L #######################
-# 			# construct feed_dict
-# 			feed_dict = {}
-# 			for layer, _ in weights.items():
-# 				feed_dict.update({ wC_tf[layer]: wC_reshape[layer] })
-# 				feed_dict.update({ biasC_tf[layer]: biasC[layer] })
-# 				feed_dict.update({ lamda_tf[layer]: lamda[layer] })
-# 				feed_dict.update({ lamda_bias_tf[layer]: lamda_bias[layer] })
-# 			feed_dict.update({	x: X_batch,
-# 						 		y: y_batch,
-# 						 		learning_rate: lr,
-# 						 		momentum_tf: momentum,
-# 						 		mu_tf: mu }),
-# 			# train on batch
-# 			train_L_step.run(feed_dict)
-			
-# 			if index_minibatch == 0:
-# 				train_loss, train_accuracy = \
-# 				 		sess.run([loss_L_step, accuracy], feed_dict = feed_dict)
-# 				index = j*num_epoch_in_each_L_train+epoch
-# 				train_loss_L[index] = train_loss
-# 				train_error_L[index] = 1 - train_accuracy
-
-# 				feed_dict.update( { x: data.validation.images, 
-# 									y: data.validation.labels })
-# 				val_loss, val_accuracy = \
-# 					sess.run([loss_L_step, accuracy], feed_dict = feed_dict)
-
-# 				feed_dict.update( { x: data.test.images, 
-# 									y: data.test.labels })
-
-# 				test_loss, test_accuracy = \
-# 					sess.run([loss_L_step, accuracy], feed_dict = feed_dict)
-
-# 				print('step: {}, train loss: {}, train acuracy: {}' \
-# 							.format(i, train_loss, train_accuracy) )
-# 				print('step: {}, val loss: {}, val acuracy: {}' \
-# 							.format(i, val_loss, val_accuracy) )
-# 				print('step: {}, test loss: {}, test acuracy: {}' \
-# 							.format(i, test_loss, test_accuracy) )
-# 			# reference weight and bias
-# 			w_bar = sess.run(weights)
-# 			bias_bar = sess.run(biases)
-# 		######################################################################
-# 		####################### accuracy using w #############################
-# 		feed_dict = {}
-# 		for layer, _ in weights.items():
-# 			feed_dict.update({wC_tf[layer]: wC_reshape[layer]})
-# 			feed_dict.update({biasC_tf[layer]: biasC[layer]})
-# 			feed_dict.update({lamda_tf[layer]: lamda[layer]})
-# 			feed_dict.update({lamda_bias_tf[layer]: lamda_bias[layer]})
-# 		feed_dict.update({	mu_tf: mu,
-# 							x: data.validation.images, 
-# 							y: data.validation.labels})
-
-# 		val_loss, val_accuracy = \
-# 		sess.run([loss_L_step, accuracy], feed_dict = feed_dict)
-# 		val_loss_L[j] = val_loss
-# 		val_error_L[j] = 1 - val_accuracy
-
-# 		feed_dict.update({	x: data.test.images, 
-# 							y: data.test.labels})
-	
-# 		test_loss, test_accuracy = \
-# 		sess.run([loss_L_step, accuracy], feed_dict = feed_dict)
-# 		test_loss_L[j] = test_loss
-# 		test_error_L[j] = 1 - test_accuracy
-# 		print('L step: {}, val loss: {}, val acuracy: {}' \
-# 							.format(j, val_loss, val_accuracy) )
-# 		print('L step: {}, test loss: {}, test acuracy: {}' \
-# 							.format(j, test_loss, test_accuracy) )
-# 		#######################################################################
-# 		######## C Step #######################################################
-# 		#######################################################################
-# 		print('----------------------------------------------')
-# 		print('C STEP #{} for k = {}' .format(j,k))
-# 		print('----------------------------------------------')
-# 		# flatten the weights and concatenate bias for each layer
-# 		w = {}
-# 		for layer, _ in w_bar.items():
-# 			wf = w_bar[layer].flatten() - lamda[layer].flatten() / mu
-# 			bf = bias_bar[layer] - lamda_bias[layer] / mu
-# 			wf = np.concatenate( (wf , bf) , axis=0)
-# 			w[layer] = wf.reshape(-1 , 1)
-
-# 		# Kmeans
-# 		for layer, _ in w.items():
-# 			kmeans[layer] = KMeans(n_clusters=k, random_state=0).fit(w[layer])
-# 			C[layer] = kmeans[layer].cluster_centers_ 
-# 			Z[layer] = kmeans[layer].labels_
-# 			# quantize reference net
-# 			wC[layer]= C[layer][Z[layer]]
-# 		######################################################################
-# 		####################### reshape weights ##############################
-# 		for layer, _ in w_bar.items():
-# 			wC_reshape[layer] = wC[layer][0:w_bar[layer].size].reshape(w_bar[layer].shape)
-# 			biasC[layer] = wC[layer][w_bar[layer].size:].reshape(-1)
-		
-# 		######################################################################
-# 		####################### accuracy using wc ############################
-# 		feed_dict = {}
-# 		for layer, _ in weights.items():
-# 			feed_dict.update({wC_tf[layer]: wC_reshape[layer]})
-# 			feed_dict.update({biasC_tf[layer]: biasC[layer]})
-# 		feed_dict.update({	x: data.validation.images, 
-# 							y: data.validation.labels })
-
-# 		val_loss, val_accuracy = \
-# 			sess.run([loss_compression, accuracy_compression], 
-# 							feed_dict = feed_dict)
-
-# 		feed_dict.update({	x: data.test.images, 
-# 							y: data.test.labels })
-
-# 		val_loss_C[j] = val_loss
-# 		val_error_C[j] = 1 - val_accuracy
-
-# 		test_loss, test_accuracy = \
-# 		sess.run([loss_compression, accuracy_compression], feed_dict = feed_dict)
-# 		test_loss_C[j]= test_loss
-# 		test_error_C[j] = 1 - test_accuracy
-# 		print('val loss: {}, val acuracy: {}' \
-# 							.format(val_loss, val_accuracy) )
-# 		print('test loss: {}, test acuracy: {}' \
-# 							.format(test_loss, test_accuracy) )
-# 		#######################################################################
-# 		############################ update lambda ############################
-# 		for layer, _ in w_bar.items():
-# 			lamda[layer] = lamda[layer] - mu * (w_bar[layer] - wC_reshape[layer])
-# 			lamda_bias[layer] = lamda_bias[layer] - mu * (bias_bar[layer] - biasC[layer])
-
-# 		norm_compression = 0
-# 		for layer, _ in w_bar.items():
-# 			norm_compression = LA.norm(w[layer] - wC[layer])
-
-# 		print('norm of compression: {} ' .format(norm_compression) )
-
-# 		# if norm_compression < 0.001:
-# 		# 	break
-
-# 	save_path = saver.save(sess, model_file_path)
-# 	C_LC = C
-
-# ###############################################################################
-# ############################## LC WITH RETRAINING #############################
-# ###############################################################################
-# print('----------------------------------------------')
-# print('LC with RETRAINING for k = {}' .format(k))
-# print('----------------------------------------------')
-
-# Z_W_matrix = {}
-
-# Z_bias_matrix = {}
-
-# # one hot matrix assignments for weights
-# for layer, _ in w_bar.items():
-# 	tempZ = Z[layer][0:w_bar[layer].size]
-# 	tempZ_mat = np.zeros([tempZ.size, k], dtype=np.int32)
-# 	tempZ_mat[np.arange(tempZ.size), tempZ] = 1
-# 	Z_W_matrix[layer] = tempZ_mat
-
-# # one hot matrix assignments for biases
-# for layer, _ in w_bar.items():
-# 	tempZ = Z[layer][w_bar[layer].size:]
-# 	tempZ_mat = np.zeros([tempZ.size, k], dtype=np.int32)
-# 	tempZ_mat[np.arange(tempZ.size), tempZ] = 1
-# 	Z_bias_matrix[layer] = tempZ_mat
-
-# total_minibatches = 40000
-# num_epoch_LC_ret = total_minibatches // num_minibatches_data
-# epoch_LC_ret_vec = np.array(range(num_epoch_LC_ret+1)) 
-# train_loss_LC_ret = np.zeros(num_epoch_LC_ret+1)
-# train_error_LC_ret = np.zeros(num_epoch_LC_ret+1)
-# val_loss_LC_ret	 = np.zeros(num_epoch_LC_ret+1)
-# val_error_LC_ret = np.zeros(num_epoch_LC_ret+1)
-# test_loss_LC_ret = np.zeros(num_epoch_LC_ret+1)
-# test_error_LC_ret = np.zeros(num_epoch_LC_ret+1)
+val_loss_C = np.zeros(LC_epoches)
+val_error_C = np.zeros(LC_epoches)
+test_loss_C = np.zeros(LC_epoches)
+test_error_C = np.zeros(LC_epoches)
 
 # ################### TO SAVE MODEL ##################
-# model_file_name = 'LC_ret_model_k_' + str(k) + '.ckpt'
-# model_file_path = './model_lenet_5/' + model_file_name 
+model_file_name = 'LC_model_k_' + str(k) + '.ckpt'
+model_file_path = './model/' + model_file_name 
 
-# with tf.Session() as sess:
-# 	sess.run(init)
-	
-# 	feed_dict = {}
-# 	for layer, _ in weights.items():
-# 		feed_dict.update({codebook_placeholder_tf[layer]: C[layer]})
-	
-# 	sess.run(init_codebook_tf, feed_dict= feed_dict)
-# 	for i in range(total_minibatches):
-# 		index_minibatch = i % num_minibatches_data
-# 		epoch = i // num_minibatches_data		
-# 		# shuffle data at the begining of each epoch
-# 		if index_minibatch == 0:
-# 			X_train, y_train = shuffle_data(data)
-# 		# adjust learning rate
-# 		if i % learning_rate_stay_fixed == 0:
-# 			j = i // learning_rate_stay_fixed
-# 			lr = 0.000001 * learning_rate_decay ** j
-# 		# mini batch 
-# 		start_index = index_minibatch     * minibatch
-# 		end_index   = (index_minibatch+1) * minibatch
-# 		X_batch = X_train[start_index:end_index]
-# 		y_batch = y_train[start_index:end_index]
+with tf.Session() as session:
+	batch_size = 64
+	learning_rate = 0.01
+	session.run(init)
+	saver = tf.train.Saver()
+	L_var_values = ref_values
+	L_weights_values = ref_weights_values
+	feed_dict = {}
+	for j in range(LC_epoches):
+		for layer, _ in variables.items():
+			feed_dict.update({ variables_init_placeholder[layer]: L_var_values[layer] })
+		sess.run(var_init,feed_dict=feed_dict)
 		
-# 		feed_dict = {}
-# 		for layer, _ in weights.items():
-# 			feed_dict.update({Z_W_int_tf[layer]: Z_W_matrix[layer]})
-# 			feed_dict.update({Z_bias_int_tf[layer]: Z_bias_matrix[layer]})
-# 		feed_dict.update({	x: X_batch,
-# 							y: y_batch,
-# 							learning_rate: lr,
-# 							momentum_tf: momentum})
-		
-# 		train_DC_ret_step.run(feed_dict = feed_dict)
-# 		############### LOSS AND ACCURACY EVALUATION ##########################
-# 		if index_minibatch == 0:
-# 			train_loss, train_accuracy = \
-# 					sess.run([loss_DC_ret, accuracy_DC_ret], feed_dict = feed_dict )
-# 			train_loss_LC_ret[epoch] = train_loss
-# 			train_error_LC_ret[epoch] = 1 - train_accuracy
+		print('L step {} : ' .format(j))
+		# adjust mu
+		mu = mu_0 * ( a ** j )
+		# adjust learning rate
+		if k > 8:
+			lr = 0.01 * ( 0.98 ** j )
+		else:
+			lr = 0.02 * ( 0.98 ** j )
+		#######################################################################
+		######## L Step #######################################################
+		#######################################################################	
+		print('----------------------------------------------')
+		print('L STEP #{} for k = {}' .format(j,k))
+		print('----------------------------------------------')
 
-# 			feed_dict.update( { x: data.validation.images, 
-# 								y: data.validation.labels} )
-# 			val_loss, val_accuracy = \
-# 			sess.run([loss_DC_ret, accuracy_DC_ret], feed_dict = feed_dict )
-# 			val_loss_LC_ret[epoch] = val_loss
-# 			val_error_LC_ret[epoch] = 1 - val_accuracy
-
-# 			feed_dict.update( { x: data.test.images, 
-# 								y: data.test.labels} )
-
-# 			test_loss, test_accuracy = \
-# 			sess.run([loss_DC_ret, accuracy_DC_ret], feed_dict = feed_dict)
-# 			test_loss_LC_ret[epoch] = test_loss
-# 			test_error_LC_ret[epoch] = 1 - test_accuracy
+		# variable.initialized_value() ?
+		for i in range(max_iter_each_L_step):
+			X_train, y_train = data['train-data'], data['train-labels']
+			index_minibatch = i % num_minibatches_data
+			epoch = i // num_minibatches_data		
+			# shuffle data at the begining of each epoch
+			if index_minibatch == 0:
+				X_train, y_train = shuffle_data(X_train, y_train)
+			# mini batch 
+			start_index = index_minibatch     * minibatch
+			end_index   = (index_minibatch+1) * minibatch
+			X_batch = X_train[start_index:end_index]
+			y_batch = y_train[start_index:end_index]
 			
-# 			print('step: {}, train loss: {}, train acuracy: {}' \
-# 							.format(i, train_loss, train_accuracy) )
-# 			print('step: {}, val loss: {}, val acuracy: {}' \
-# 							.format(i, val_loss, val_accuracy) )
-# 			print('step: {}, test loss: {}, test acuracy: {}' \
-# 							.format(i, test_loss, test_accuracy) )
+			feed_dict = { 	x: X_batch, 
+							y: y_batch, 
+							lr: learning_rate, 
+							is_training: True, 
+							keep_prob: 0.8,
+							mu_tf: mu }
+			train_L_step.run(feed_dict=feed_dict)
+			train_loss, train_accuracy = \
+			 			sess.run([loss_L_step, accuracy], feed_dict = feed_dict)
+			
+			if index_minibatch == 0:
+				train_loss, train_accuracy = \
+			 			sess.run([loss_L_step, accuracy], feed_dict = feed_dict)
+			 	train_loss_L[epoch] = train_loss
+			 	train_error_L[epoch] = 1 - train_accuracy
+			 	print('L epoch: {}, train loss: {}, train error: {}' \
+							.format(epoch, train_loss_L[epoch], train_error_L[epoch]) )
+				validation_results = run_in_batch_avg(
+						sess,
+						[cross_entropy,accuracy],
+						[x,y],
+						feed_dict = { 	x: data['validation-data'], 
+										y: data['validation-labels'], 
+										is_training: False, 
+										keep_prob: 1.,
+										mu_tf:mu })
+				val_loss_L[epoch] = validation_results[0]
+				val_error_L[epoch] = validation_results[1]
+				print('L epoch: {}, val loss: {}, val error: {}' \
+							.format(epoch, val_loss_L[epoch], val_error_L[epoch]) )
 
-# 		#train_loss_ref = sess.run(loss)
+
+		test_results = run_in_batch_avg(session,[loss_L_step,accuracy],[x,y],
+				feed_dict = { 	x: data['test-data'], 
+								y: data['test-labels'], 
+								is_training: False, 
+								keep_prob: 1. })
+		test_loss_L[j] = test_results[0]
+		test_error_L[j] = 1 - test_results[1]
 		
-# 	save_path = saver.save(sess, model_file_path)
-# 	# reference weight and bias
-# 	C_LC_ret = sess.run(codebook_tf, feed_dict = feed_dict)
+		print('L step: {}, test loss: {}, test error: {}' \
+							.format(j, test_loss_L[j], test_error_L[j]) )
 
+		########################################################################
+		########################## C STEP ######################################
+		########################################################################
+		########################################################################
+		########### learn codebook and assignments #############################
+		########################################################################
+		# flatten the weights and concatenate bias for each layer
+		L_var_values = {}
+		L_weights_values = {}
+		for v in tf.trainable_variables():
+			L_var_values[v.name] = sess.run(v)
+		if 'Batch' not in v.name:
+			L_weights_values[v.name] = sess.run(v)
 
-# # df_ref = pd.DataFrame({	'train_loss_ref' : train_loss_ref,
-# # 						'train_error_ref': train_error_ref,
-# # 						'val_loss_ref': val_loss_ref,
-# # 						'val_error_ref': val_error_ref,
-# # 						'test_loss_ref': test_loss_ref,
-# # 						'test_error_ref': test_error_ref})
+		w = {}
+		for layer, weight_matrix in L_weights_values.items():
+			w[layer] = weight_matrix.flatten().reshape(-1,1)
 
-# df_DC = pd.DataFrame({	'val_loss_DC': val_loss_DC,
-# 						'val_error_DC': val_error_DC,
-# 						'test_loss_DC': test_loss_DC,
-# 						'test_error_DC': test_error_DC}, index=[0])
+		# dictionary to save the kmeans output for each layer 
+		kmeans = {}
+		# codebook of each layer i.e. centers of kmeans
+		C = {}
+		# assignments i.e. labels of kmeans
+		Z = {}
+		# quantized reference net i.e. prediction of kmeans
+		wC = {}
 
+		# Kmeans
+		for layer, _ in w.items():
+			kmeans[layer] = KMeans(n_clusters=k, random_state=0).fit(w[layer])
+			C[layer] = kmeans[layer].cluster_centers_ 
+			Z[layer] = kmeans[layer].labels_
+			# quantize reference net
+			wC[layer]= C[layer][Z[layer]]
 
-# df_DC_ret = pd.DataFrame({	'val_loss_DC_ret': val_loss_DC_ret,
-# 							'val_error_DC_ret': val_error_DC_ret,
-# 							'test_loss_DC_ret': test_loss_DC_ret,
-# 							'test_error_DC_ret': test_error_DC_ret})
+		wC_reshape = {}
+		for layer, weight_matrix in wC.items():
+			wC_reshape[layer] = wC[layer].reshape(ref_weights_values[layer].shape)
 
-# df_L_train = pd.DataFrame({	'train_loss_L' : train_loss_L,
-# 							'train_error_L': train_error_L})
+		######################################################################
+		####################### accuracy using wc ############################
+		feed_dict = {}
+		for layer, _ in weights.items():
+			feed_dict.update({ w_init_placeholder[layer]: wC_reshape[layer] })
+		sess.run(w_init,feed_dict=feed_dict)
+		test_results = run_in_batch_avg(sess,[cross_entropy,accuracy],[x,y],
+ 				feed_dict = { 	x: data['test-data'], 
+ 								y: data['test-labels'], 
+ 								is_training: False, 
+ 								keep_prob: 1. })
+		print('test results for C: ', test_results)
+		test_loss_C[j]= test_results[0]
+		test_error_C[j] = 1 - test_results[1]
+		print('C Step: {}, test loss: {}, test acuracy: {}' \
+							.format(j, test_loss_C[j], test_error_C[j]) )
+		#######################################################################
+		############################ update lambda ############################
+		for layer, _ in w.items():
+			lamda[layer] = lamda[layer] - mu * (w_bar[layer] - wC_reshape[layer])
 
-# df_LC = pd.DataFrame({	'val_loss_L': val_loss_L,
-# 						'val_error_L': val_error_L,
-# 						'test_loss_L': test_loss_L,
-# 						'test_error_L': test_error_L,
-# 						'val_loss_C': val_loss_C,
-# 						'val_error_C': val_error_C,
-# 						'test_loss_C': test_loss_C,
-# 						'test_error_C': test_error_C})
+		norm_compression = 0
+		for layer, _ in w.items():
+			norm_compression += LA.norm(w[layer] - wC[layer])
 
-# df_LC_ret = pd.DataFrame({	'train_loss_LC_ret': train_loss_LC_ret,
-# 							'train_error_LC_ret': train_error_LC_ret,
-# 							'val_loss_LC_ret': val_loss_LC_ret,
-# 							'val_error_LC_ret': val_error_LC_ret,
-# 							'test_loss_LC_ret': test_loss_LC_ret,
-# 							'test_error_LC_ret': test_error_LC_ret})
+		print('norm of compression: {} ' .format(norm_compression) )
 
-# file_pickle = './results_lenet_5/results_pickle_k_' + str(k) + '.pkl'
-# with open(file_pickle,'wb') as f:
-# 	pickle.dump(C_DC,f)
-# 	pickle.dump(C_DC_ret,f)
-# 	pickle.dump(C_LC,f)
-# 	pickle.dump(C_LC_ret,f)
-# 	df_ref.to_pickle(f)
-# 	df_DC.to_pickle(f)
-# 	df_DC_ret.to_pickle(f)
-# 	df_L_train.to_pickle(f)
-# 	df_LC.to_pickle(f)
-# 	df_LC_ret.to_pickle(f)
+		if norm_compression < 0.001:
+			break
 
-# # import pickle
-# # file_pickle = './results_lenet_5/results_pickle_k_' + str(k) + '.pkl'
-# # with open(file_pickle,'rb') as f:
-# # 	C_DC = pickle.load(f)
-# # 	C_DC_ret = pickle.load(f)
-# # 	C_LC = pickle.load(f)
-# # 	C_LC_ret = pickle.load(f)
-# # 	df_ref = pickle.load(f)
-# # 	df_DC = pickle.load(f)
-# # 	df_DC_ret = pickle.load(f)
-# # 	df_L_train = pickle.load(f)
-# # 	df_LC = pickle.load(f)
-# # 	df_LC_ret = pickle.load(f)
+	save_path = saver.save(sess, model_file_path)
+	C_LC = C
+
+df_DC = pd.DataFrame({	'test_loss_DC': test_loss_DC,
+						'test_error_DC': test_error_DC}, index=[0])
+
+df_L_train = pd.DataFrame({	'train_loss_L' : train_loss_L,
+ 							'train_error_L': train_error_L})
+
+df_LC = pd.DataFrame({	'val_loss_L': val_loss_L,
+						'val_error_L': val_error_L,
+						'test_loss_L': test_loss_L,
+						'test_error_L': test_error_L,
+						'test_loss_C': test_loss_C,
+						'test_error_C': test_error_C})
+
+file_pickle = './results/results_pickle_k_' + str(k) + '.pkl'
+with open(file_pickle,'wb') as f:
+	pickle.dump(C_DC,f)
+	pickle.dump(C_LC,f)
+	df_DC.to_pickle(f)
+	df_L_train.to_pickle(f)
+	df_LC.to_pickle(f)
