@@ -141,7 +141,7 @@ def run_in_batch_avg(session, tensors, batch_placeholders, feed_dict={}, batch_s
 			feed_dict[placeholder] = tensor[ batch_idx*batch_size : (batch_idx+1)*batch_size ]
 		tmp = session.run(tensors, feed_dict=feed_dict)																																		
 		res = [ r + t * current_batch_size for (r, t) in zip(res, tmp) ]																									 
-	return [ r / float(total_size) for r in res ]
+	return [ r / float(batch_count) for r in res ]
 
 def weight_variable(shape):
 	initial = tf.truncated_normal(shape, stddev=0.01)
@@ -479,7 +479,7 @@ with tf.Session() as sess:
 				validation_results = run_in_batch_avg(sess,[cross_entropy,accuracy],
 												[x,y],feed_dict = feed_dict)
 				val_loss_L[epoch] = validation_results[0]
-				val_error_L[epoch] = validation_results[1]
+				val_error_L[epoch] = 1 - validation_results[1]
 				print('L epoch: {}, val loss: {}, val error: {}' \
 							.format(epoch, val_loss_L[epoch], val_error_L[epoch]) )
 
@@ -576,14 +576,14 @@ with open(file_pickle,'wb') as f:
 	pickle.dump(C_LC,f)
 	pickle.dump(test_loss_DC,f)
 	pickle.dump(test_error_DC,f)
-	pickle.dump(train_loss_L)
-	pickle.dump(train_error_L)
-	pickle.dump(val_loss_L)
-	pickle.dump(val_error_L)
-	pickle.dump(test_loss_L)
-	pickle.dump(test_error_L)
-	pickle.dump(test_loss_C)
-	pickle.dump(test_error_C)
+	pickle.dump(train_loss_L,f)
+	pickle.dump(train_error_L,f)
+	pickle.dump(val_loss_L,f)
+	pickle.dump(val_error_L,f)
+	pickle.dump(test_loss_L,f)
+	pickle.dump(test_error_L,f)
+	pickle.dump(test_loss_C,f)
+	pickle.dump(test_error_C,f)
 
 
 
