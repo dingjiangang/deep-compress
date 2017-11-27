@@ -141,7 +141,7 @@ def run_in_batch_avg(session, tensors, batch_placeholders, feed_dict={}, batch_s
 			feed_dict[placeholder] = tensor[ batch_idx*batch_size : (batch_idx+1)*batch_size ]
 		tmp = session.run(tensors, feed_dict=feed_dict)																																		
 		res = [ r + t * current_batch_size for (r, t) in zip(res, tmp) ]																									 
-	return [ r / float(batch_count) for r in res ]
+	return [ r / float(total_size) for r in res ]
 
 def weight_variable(shape):
 	initial = tf.truncated_normal(shape, stddev=0.01)
