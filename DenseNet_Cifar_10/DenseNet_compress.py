@@ -128,7 +128,7 @@ data = {'train-data': X_train,
 ####################### MODEL ##################################################
 ################################################################################
 
-def run_in_batch_avg(session, tensors, batch_placeholders, feed_dict={}, batch_size=200):															
+def run_in_batch_avg(session, tensors, batch_placeholders, feed_dict={}, batch_size=64):															
 	res = [ 0 ] * len(tensors)
 	batch_tensors = [ (placeholder, feed_dict[ placeholder ]) for placeholder in batch_placeholders ]										
 	total_size = len(batch_tensors[0][1])																																								
@@ -139,9 +139,9 @@ def run_in_batch_avg(session, tensors, batch_placeholders, feed_dict={}, batch_s
 			batch_tensor = tensor[ batch_idx*batch_size : (batch_idx+1)*batch_size ]
 			current_batch_size = len(batch_tensor)
 			feed_dict[placeholder] = tensor[ batch_idx*batch_size : (batch_idx+1)*batch_size ]
-	tmp = session.run(tensors, feed_dict=feed_dict)																																		
-	res = [ r + t * current_batch_size for (r, t) in zip(res, tmp) ]																									 
-	return res #[ r / float(total_size) for r in res ]
+		tmp = session.run(tensors, feed_dict=feed_dict)																																		
+		res = [ r + t * current_batch_size for (r, t) in zip(res, tmp) ]																									 
+	return [ r / float(total_size) for r in res ]
 
 def weight_variable(shape):
 	initial = tf.truncated_normal(shape, stddev=0.01)
@@ -570,23 +570,26 @@ with tf.Session() as sess:
 	save_path = saver.save(sess, model_file_path)
 	C_LC = C
 
-df_DC = pd.DataFrame({	'test_loss_DC': test_loss_DC,
-						'test_error_DC': test_error_DC}, index=[0])
-
-df_L_train = pd.DataFrame({	'train_loss_L' : train_loss_L,
- 							'train_error_L': train_error_L})
-
-df_LC = pd.DataFrame({	'val_loss_L': val_loss_L,
-						'val_error_L': val_error_L,
-						'test_loss_L': test_loss_L,
-						'test_error_L': test_error_L,
-						'test_loss_C': test_loss_C,
-						'test_error_C': test_error_C})
-
 file_pickle = './results/results_pickle_k_' + str(k) + '.pkl'
 with open(file_pickle,'wb') as f:
 	pickle.dump(C_DC,f)
 	pickle.dump(C_LC,f)
-	df_DC.to_pickle(f)
-	df_L_train.to_pickle(f)
-	df_LC.to_pickle(f)
+	pickle.dump(test_loss_DC,f)
+	pickle.dump(test_error_DC,f)
+	pickle.dump(train_loss_L)
+	pickle.dump(train_error_L)
+	pickle.dump(val_loss_L)
+	pickle.dump(val_error_L)
+	pickle.dump(test_loss_L)
+	pickle.dump(test_error_L)
+	pickle.dump(test_loss_C)
+	pickle.dump(test_error_C)
+
+
+
+
+
+
+
+
+
