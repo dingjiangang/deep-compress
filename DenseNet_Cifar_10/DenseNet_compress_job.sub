@@ -4,7 +4,7 @@
 #$ -cwd
 #$ -N myjob
 #$ -j y
-#$ -o NOV_21_lenet_5_smaller_ret_lr.qlog
+#$ -o DenseNet-compress.qlog
 #$ -l mem_free=64G
 #$ -pe smp 20
 #$ -V
@@ -14,12 +14,9 @@ export LD_LIBRARY_PATH=${CUDA_HOME}/lib64:$LD_LIBRARY_PATH
 
 module load anaconda3
 source activate jacobenv
-(export CUDA_VISIBLE_DEVICES=0
-python DenseNet_compress.py --k=2 >> k_2.txt) &
-(export CUDA_VISIBLE_DEVICES=1
-python test_gpu_devices.py --k=4 >> k_4.txt) &
-(export CUDA_VISIBLE_DEVICES=2
-python test_gpu_devices.py --k=8 >> k_8.txt) &
-(export CUDA_VISIBLE_DEVICES=3
-python test_gpu_devices.py --k=16 >> k_16.txt) &
-wait
+python DenseNet_compress.py --k=2
+python DenseNet_compress.py --k=4
+python DenseNet_compress.py --k=8
+python DenseNet_compress.py --k=16
+python DenseNet_compress.py --k=32
+
