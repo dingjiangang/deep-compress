@@ -6,8 +6,8 @@ import random
 import numpy as np
 
 
-from .base_provider import ImagesDataSet, DataProvider
-from .downloader import download_data_url
+from base_provider import ImagesDataSet, DataProvider
+from downloader import download_data_url
 
 
 def augment_image(image, pad):

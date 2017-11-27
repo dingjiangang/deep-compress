@@ -1,6 +1,6 @@
-from .cifar import Cifar10DataProvider, Cifar100DataProvider, \
+from cifar import Cifar10DataProvider, Cifar100DataProvider, \
     Cifar10AugmentedDataProvider, Cifar100AugmentedDataProvider
-from .svhn import SVHNDataProvider
+from svhn import SVHNDataProvider
 
 
 def get_data_provider_by_name(name, train_params):
