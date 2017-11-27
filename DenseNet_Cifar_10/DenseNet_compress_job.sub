@@ -20,6 +20,6 @@ python DenseNet_compress.py --k=2 >> k_2.txt) &
 python test_gpu_devices.py --k=4 >> k_4.txt) &
 (export CUDA_VISIBLE_DEVICES=2
 python test_gpu_devices.py --k=8 >> k_8.txt) &
-(export CUDA_VISIBLE_DEVICES=4
+(export CUDA_VISIBLE_DEVICES=3
 python test_gpu_devices.py --k=16 >> k_16.txt) &
 wait
