@@ -134,10 +134,9 @@ def run_in_batch_avg(session, tensors, batch_placeholders, feed_dict={}, batch_s
 	total_size = len(batch_tensors[0][1])																																								
 	batch_count = (total_size + batch_size - 1) // batch_size
 	for batch_idx in range(batch_count):
-		current_batch_size = None																																													
+		current_batch_size = batch_size																																													
 		for (placeholder, tensor) in batch_tensors:
 			batch_tensor = tensor[ batch_idx*batch_size : (batch_idx+1)*batch_size ]
-			current_batch_size = len(batch_tensor)
 			feed_dict[placeholder] = tensor[ batch_idx*batch_size : (batch_idx+1)*batch_size ]
 		tmp = session.run(tensors, feed_dict=feed_dict)																																		
 		res = [ r + t * current_batch_size for (r, t) in zip(res, tmp) ]																									 
