@@ -1,2 +1,4 @@
-model_checkpoint_path: "densenet_50.ckpt"
+model_checkpoint_path: "densenet_150.ckpt"
 all_model_checkpoint_paths: "densenet_50.ckpt"
+all_model_checkpoint_paths: "densenet_100.ckpt"
+all_model_checkpoint_paths: "densenet_150.ckpt"
