@@ -1,6 +1,6 @@
 # import os
 # os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"   # see issue #152
-# os.environ["CUDA_VISIBLE_DEVICES"]="0"
+# os.environ["CUDA_VISIBLE_DEVICES"]="1"
 
 # from tensorflow.python.client import device_lib
 # print(device_lib.list_local_devices())
@@ -278,7 +278,6 @@ for layer, _ in ref_weights.items():
 W_DC_ret_tf = {}
 for layer, _ in ref_weights.items():
 	W_DC_ret_tf[layer] = tf.reshape(tf.matmul(Z_W_tf[layer] , codebook_tf[layer]), ref_weights[layer].get_shape())
-init = tf.global_variables_initializer()
 
 # # Define loss and optimizer
 
@@ -344,7 +343,7 @@ for layer, weight_matrix in wC.items():
 
 with tf.Session() as sess:
 	batch_size = 64
-	sess.run(init)
+	sess.run(tf.global_variables_initializer())
 	# construct feed_dict
 	feed_dict = {}
 	for layer, _ in variables.items():
@@ -374,6 +373,7 @@ LC_epoches = 2
 batch_size = 64
 minibatch = batch_size
 batch_count = len(train_data) // batch_size
+num_minibatches_data = batch_count
 
 # ################### TO SAVE TRAINING AND TEST LOSS AND ERROR ##################
 # ################### FOR REFERENCE NET #########################################
@@ -398,17 +398,26 @@ test_error_C = np.zeros(LC_epoches)
 model_file_name = 'LC_model_k_' + str(k) + '.ckpt'
 model_file_path = './model/' + model_file_name 
 
-with tf.Session() as session:
+# initilize lambda == python reserved lambda so let's use lamda
+lamda = {}
+for layer, _ in ref_weights_values.items():
+	lamda[layer] = np.zeros(ref_weights_values[layer].shape)
+
+with tf.Session() as sess:
+	sess.run(tf.global_variables_initializer())
 	batch_size = 64
 	learning_rate = 0.01
-	session.run(init)
 	saver = tf.train.Saver()
 	L_var_values = ref_values
 	L_weights_values = ref_weights_values
-	feed_dict = {}
 	for j in range(LC_epoches):
+		feed_dict = {}
 		for layer, _ in variables.items():
 			feed_dict.update({ variables_init_placeholder[layer]: L_var_values[layer] })
+		
+		for layer, _ in weights.items():
+			feed_dict.update({ wC_tf[layer]: wC_reshape[layer] })
+			feed_dict.update({ lamda_tf[layer]: lamda[layer] })
 		sess.run(var_init,feed_dict=feed_dict)
 		
 		print('L step {} : ' .format(j))
@@ -416,9 +425,9 @@ with tf.Session() as session:
 		mu = mu_0 * ( a ** j )
 		# adjust learning rate
 		if k > 8:
-			lr = 0.01 * ( 0.98 ** j )
+			learning_rate = 0.01 * ( 0.98 ** j )
 		else:
-			lr = 0.02 * ( 0.98 ** j )
+			learning_rate = 0.02 * ( 0.98 ** j )
 		#######################################################################
 		######## L Step #######################################################
 		#######################################################################	
@@ -439,17 +448,22 @@ with tf.Session() as session:
 			end_index   = (index_minibatch+1) * minibatch
 			X_batch = X_train[start_index:end_index]
 			y_batch = y_train[start_index:end_index]
-			
-			feed_dict = { 	x: X_batch, 
-							y: y_batch, 
-							lr: learning_rate, 
-							is_training: True, 
-							keep_prob: 0.8,
-							mu_tf: mu }
-			train_L_step.run(feed_dict=feed_dict)
-			train_loss, train_accuracy = \
-			 			sess.run([loss_L_step, accuracy], feed_dict = feed_dict)
-			
+			###################################################################
+			####################### training batch in L #######################
+			# construct feed_dict
+			feed_dict = {}
+			for layer, _ in weights.items():
+				feed_dict.update({ wC_tf[layer]: wC_reshape[layer] })
+				feed_dict.update({ lamda_tf[layer]: lamda[layer] })
+				feed_dict.update({	x: X_batch,
+						 		y: y_batch,
+						 		lr: learning_rate,
+						 		is_training: True, 
+						 		keep_prob: 0.8,
+						 		mu_tf: mu })
+
+			batch_res = sess.run([ train_L_step,loss_L_step, accuracy ], 
+								feed_dict = feed_dict)			
 			if index_minibatch == 0:
 				train_loss, train_accuracy = \
 			 			sess.run([loss_L_step, accuracy], feed_dict = feed_dict)
@@ -457,26 +471,26 @@ with tf.Session() as session:
 				train_error_L[epoch] = 1 - train_accuracy
 				print('L epoch: {}, train loss: {}, train error: {}' \
 							.format(epoch, train_loss_L[epoch], train_error_L[epoch]) )
-				validation_results = run_in_batch_avg(
-						sess,
-						[cross_entropy,accuracy],
-						[x,y],
-						feed_dict = { 	x: data['validation-data'], 
-										y: data['validation-labels'], 
-										is_training: False, 
-										keep_prob: 1.,
-										mu_tf:mu })
+				feed_dict.update({ 	x: data['validation-data'], 
+									y: data['validation-labels'], 
+									is_training: False, 
+									keep_prob: 1.,
+									mu_tf: mu })
+				validation_results = run_in_batch_avg(sess,[cross_entropy,accuracy],
+												[x,y],feed_dict = feed_dict)
 				val_loss_L[epoch] = validation_results[0]
 				val_error_L[epoch] = validation_results[1]
 				print('L epoch: {}, val loss: {}, val error: {}' \
 							.format(epoch, val_loss_L[epoch], val_error_L[epoch]) )
 
-
-		test_results = run_in_batch_avg(session,[loss_L_step,accuracy],[x,y],
-				feed_dict = { 	x: data['test-data'], 
+		feed_dict.update({ 	x: data['test-data'], 
 								y: data['test-labels'], 
 								is_training: False, 
-								keep_prob: 1. })
+								keep_prob: 1.,
+								mu_tf: mu })
+		test_results = run_in_batch_avg(sess,[loss_L_step,accuracy],[x,y],
+								feed_dict=feed_dict)
+				
 		test_loss_L[j] = test_results[0]
 		test_error_L[j] = 1 - test_results[1]
 		
@@ -492,10 +506,11 @@ with tf.Session() as session:
 		# flatten the weights and concatenate bias for each layer
 		L_var_values = {}
 		L_weights_values = {}
-		for v in tf.trainable_variables():
-			L_var_values[v.name] = sess.run(v)
-		if 'Batch' not in v.name:
-			L_weights_values[v.name] = sess.run(v)
+		
+		for layer, var in variables.items():
+			L_var_values[layer] = sess.run(var)
+			if 'Batch' not in layer:
+				L_weights_values[layer] = sess.run(var)
 
 		w = {}
 		for layer, weight_matrix in L_weights_values.items():
@@ -540,12 +555,12 @@ with tf.Session() as session:
 							.format(j, test_loss_C[j], test_error_C[j]) )
 		#######################################################################
 		############################ update lambda ############################
-		for layer, _ in w.items():
-			lamda[layer] = lamda[layer] - mu * (w_bar[layer] - wC_reshape[layer])
+		for layer, _ in weights.items():
+			lamda[layer] = lamda[layer] - mu * (L_weights_values[layer] - wC_reshape[layer])
 
 		norm_compression = 0
 		for layer, _ in w.items():
-			norm_compression += LA.norm(w[layer] - wC[layer])
+			norm_compression += LA.norm(L_weights_values[layer] - wC[layer])
 
 		print('norm of compression: {} ' .format(norm_compression) )
 

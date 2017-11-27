@@ -676,7 +676,7 @@ with tf.Session() as sess:
 						 		y: y_batch,
 						 		learning_rate: lr,
 						 		momentum_tf: momentum,
-						 		mu_tf: mu }),
+						 		mu_tf: mu })
 			# train on batch
 			train_L_step.run(feed_dict)
 			
