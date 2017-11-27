@@ -3,6 +3,7 @@ import os
 import urllib.request
 import tarfile
 import zipfile
+from sys import exit
 
 
 def report_download_progress(count, block_size, total_size):

@@ -4,6 +4,7 @@ import pickle
 import random
 
 import numpy as np
+from sys import exit
 
 
 from base_provider import ImagesDataSet, DataProvider
