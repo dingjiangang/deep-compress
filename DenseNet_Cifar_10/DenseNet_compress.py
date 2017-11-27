@@ -13,8 +13,8 @@ print('---------------------------------------------------')
 print('LOADING MY PRETRAINED REFERENCE NET for DenseNet-40')
 print('---------------------------------------------------')
 ################### TO LOAD MODEL #############################################
-model_file_path = './densenet_300.ckpt'
-model_file_meta = './densenet_300.ckpt.meta'
+model_file_path = './densenet_150.ckpt'
+model_file_meta = './densenet_150.ckpt.meta'
 ############################## LOAD weights and biases ########################
 ref_variables = {}
 ref_values = {}
@@ -131,7 +131,7 @@ data = {'train-data': X_train,
 def run_in_batch_avg(session, tensors, batch_placeholders, feed_dict={}, batch_size=64):															
 	res = [ 0 ] * len(tensors)
 	batch_tensors = [ (placeholder, feed_dict[ placeholder ]) for placeholder in batch_placeholders ]										
-	total_size = len(batch_tensors[0][1])																																								
+	total_size = len(batch_tensors[0][1])
 	batch_count = (total_size + batch_size - 1) // batch_size
 	for batch_idx in range(batch_count):
 		current_batch_size = batch_size																																													
@@ -139,7 +139,7 @@ def run_in_batch_avg(session, tensors, batch_placeholders, feed_dict={}, batch_s
 			batch_tensor = tensor[ batch_idx*batch_size : (batch_idx+1)*batch_size ]
 			feed_dict[placeholder] = tensor[ batch_idx*batch_size : (batch_idx+1)*batch_size ]
 		tmp = session.run(tensors, feed_dict=feed_dict)																																		
-		res = [ r + t * current_batch_size for (r, t) in zip(res, tmp) ]																									 
+		res = [ r + t * current_batch_size for (r, t) in zip(res, tmp) ]
 	return [ r / float(total_size) for r in res ]
 
 def weight_variable(shape):
@@ -367,8 +367,8 @@ with tf.Session() as sess:
 # mu parameters
 mu_0 = 0.0001
 a = 2.0
-max_iter_each_L_step = 20
-LC_epoches = 2
+max_iter_each_L_step = 1000
+LC_epoches = 21
 batch_size = 64
 minibatch = batch_size
 batch_count = len(train_data) // batch_size
