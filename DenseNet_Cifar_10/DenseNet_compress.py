@@ -381,8 +381,8 @@ with tf.Session() as sess:
 # mu parameters
 mu_0 = 0.001
 a = 2.0
-max_iter_each_L_step = 10
-LC_epoches = 1
+max_iter_each_L_step = 1000
+LC_epoches = 21
 batch_size = 64
 minibatch = batch_size
 batch_count = len(X_train) // batch_size
