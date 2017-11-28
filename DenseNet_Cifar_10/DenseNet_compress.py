@@ -381,8 +381,8 @@ with tf.Session() as sess:
 # mu parameters
 mu_0 = 0.001
 a = 2.0
-max_iter_each_L_step = 1000
-LC_epoches = 21
+max_iter_each_L_step = 10
+LC_epoches = 1
 batch_size = 64
 minibatch = batch_size
 batch_count = len(X_train) // batch_size
@@ -438,9 +438,9 @@ with tf.Session() as sess:
 		mu = mu_0 * ( a ** j )
 		# adjust learning rate
 		if k > 8:
-			learning_rate = 0.001 * ( 0.98 ** j )
+			learning_rate = 0.01 * ( 0.98 ** j )
 		else:
-			learning_rate = 0.002 * ( 0.98 ** j )
+			learning_rate = 0.02 * ( 0.98 ** j )
 		#######################################################################
 		######## L Step #######################################################
 		#######################################################################	
