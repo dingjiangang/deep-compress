@@ -588,7 +588,11 @@ with tf.Session() as sess:
 
 		norm_compression = 0
 		for layer, _ in w.items():
-			norm_compression += LA.norm(w[layer] - wC[layer])
+			if layer not in ['Variable_39:0']:
+				norm_compression += LA.norm(w[layer] - wC[layer])
+		elif layer = 'Variable_39:0':
+				norm_compression += LA.norm(w[layer][:ref_weights_values[layer].size] - wC[layer])
+
 
 		print('norm of compression: {} ' .format(norm_compression) )
 
