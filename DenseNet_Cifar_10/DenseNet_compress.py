@@ -406,7 +406,7 @@ for layer, _ in ref_weights_values.items():
 with tf.Session() as sess:
 	sess.run(tf.global_variables_initializer())
 	batch_size = 64
-	learning_rate = 0.01
+	learning_rate = 0.001
 	saver = tf.train.Saver()
 	L_var_values = ref_values
 	L_weights_values = ref_weights_values
@@ -425,9 +425,9 @@ with tf.Session() as sess:
 		mu = mu_0 * ( a ** j )
 		# adjust learning rate
 		if k > 8:
-			learning_rate = 0.01 * ( 0.98 ** j )
+			learning_rate = 0.001 * ( 0.98 ** j )
 		else:
-			learning_rate = 0.02 * ( 0.98 ** j )
+			learning_rate = 0.002 * ( 0.98 ** j )
 		#######################################################################
 		######## L Step #######################################################
 		#######################################################################	
