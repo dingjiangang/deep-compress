@@ -305,7 +305,14 @@ train_L_step = tf.train.MomentumOptimizer(lr, 0.9, use_nesterov=True).minimize(l
 # flatten the weights and concatenate bias for each layer
 w = {}
 for layer, weight_matrix in ref_weights_values.items():
-	w[layer] = weight_matrix.flatten().reshape(-1,1)
+	if layer not in ['Variable_39:0','Variable_40:0']:
+		w[layer] = weight_matrix.flatten().reshape(-1,1)
+	else:
+		wf = ref_weights_values['Variable_39:0'].flatten()
+		bf = ref_weights_values['Variable_40:0'].flatten()
+		tmp = np.concatenate( (wf , bf) , axis=0)
+		w[layer] = tmp.reshape(-1,1)
+
 
 # dictionary to save the kmeans output for each layer 
 kmeans = {}
@@ -324,7 +331,13 @@ for layer, _ in w.items():
 	C[layer] = kmeans[layer].cluster_centers_ 
 	Z[layer] = kmeans[layer].labels_
 	# quantize reference net
-	wC[layer]= C[layer][Z[layer]]
+	if layer not in ['Variable_39:0','Variable_40:0']:
+		wC[layer]= C[layer][Z[layer]]
+	elif layer == 'Variable_39:0':
+		wC[layer] = C[layer][Z[layer][:ref_weights_values[layer].size]]
+	elif layer == 'Variable_40:0':
+		wC[layer] = C['Variable_39:0'][Z['Variable_39:0'][ref_weights_values['Variable_39:0'].size:]]
+
 C_DC = C
 ###############################################################################
 ########################## DC = Kmeans(w_bar) #################################
@@ -366,7 +379,7 @@ with tf.Session() as sess:
 ###############################################################################
 ####################################### LC ####################################
 # mu parameters
-mu_0 = 0.0001
+mu_0 = 0.001
 a = 2.0
 max_iter_each_L_step = 1000
 LC_epoches = 21
@@ -527,13 +540,18 @@ with tf.Session() as sess:
 
 		# Kmeans
 		for layer, _ in w.items():
-			#wC[layer] = w[layer]
-			#if ref_weights_values[layer].ndim != 1:
+			# wC[layer] = w[layer]
+			# if ref_weights_values[layer].ndim != 1:
 			kmeans[layer] = KMeans(n_clusters=k, random_state=0).fit(w[layer])
 			C[layer] = kmeans[layer].cluster_centers_ 
 			Z[layer] = kmeans[layer].labels_
 			# quantize reference net
-			wC[layer]= C[layer][Z[layer]]
+			if layer not in ['Variable_39:0','Variable_40:0']:
+				wC[layer]= C[layer][Z[layer]]
+			elif layer == 'Variable_39:0':
+				wC[layer] = C[layer][Z[layer][:ref_weights_values[layer].size]]
+			elif layer == 'Variable_40:0':
+				wC[layer] = C['Variable_39:0'][Z['Variable_39:0'][ref_weights_values['Variable_39:0'].size:]]
 
 		wC_reshape = {}
 		for layer, weight_matrix in wC.items():
