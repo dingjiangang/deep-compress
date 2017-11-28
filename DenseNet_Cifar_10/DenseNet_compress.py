@@ -318,12 +318,13 @@ wC = {}
 
 # Kmeans
 for layer, _ in w.items():
-	kmeans[layer] = KMeans(n_clusters=k, random_state=0).fit(w[layer])
-	C[layer] = kmeans[layer].cluster_centers_ 
-	Z[layer] = kmeans[layer].labels_
-	# quantize reference net
-	wC[layer]= C[layer][Z[layer]]
-
+	wC[layer] = w[layer]
+	if ref_weights_values[layer].ndim != 1:
+		kmeans[layer] = KMeans(n_clusters=k, random_state=0).fit(w[layer])
+		C[layer] = kmeans[layer].cluster_centers_ 
+		Z[layer] = kmeans[layer].labels_
+		# quantize reference net
+		wC[layer]= C[layer][Z[layer]]
 C_DC = C
 ###############################################################################
 ########################## DC = Kmeans(w_bar) #################################
@@ -371,7 +372,7 @@ max_iter_each_L_step = 1000
 LC_epoches = 21
 batch_size = 64
 minibatch = batch_size
-batch_count = len(train_data) // batch_size
+batch_count = len(X_train) // batch_size
 num_minibatches_data = batch_count
 
 # ################### TO SAVE TRAINING AND TEST LOSS AND ERROR ##################
@@ -526,11 +527,13 @@ with tf.Session() as sess:
 
 		# Kmeans
 		for layer, _ in w.items():
-			kmeans[layer] = KMeans(n_clusters=k, random_state=0).fit(w[layer])
-			C[layer] = kmeans[layer].cluster_centers_ 
-			Z[layer] = kmeans[layer].labels_
-			# quantize reference net
-			wC[layer]= C[layer][Z[layer]]
+			wC[layer] = w[layer]
+			if ref_weights_values[layer].ndim != 1:
+				kmeans[layer] = KMeans(n_clusters=k, random_state=0).fit(w[layer])
+				C[layer] = kmeans[layer].cluster_centers_ 
+				Z[layer] = kmeans[layer].labels_
+				# quantize reference net
+				wC[layer]= C[layer][Z[layer]]
 
 		wC_reshape = {}
 		for layer, weight_matrix in wC.items():
