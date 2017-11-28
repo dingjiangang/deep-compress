@@ -44,7 +44,7 @@ import argparse
 # Set up argument parser
 ap = argparse.ArgumentParser()
 # Single positional argument, nargs makes it optional
-ap.add_argument('--k', nargs='?', default=2)
+ap.add_argument('k', nargs='?', default=2)
 # codebook size
 k = int(ap.parse_args().k)
 
