@@ -307,7 +307,7 @@ w = {}
 for layer, weight_matrix in ref_weights_values.items():
 	if layer not in ['Variable_39:0']:
 		w[layer] = weight_matrix.flatten().reshape(-1,1)
-	elif layer = 'Variable_39:0':
+	elif layer == 'Variable_39:0':
 		wf = ref_weights_values['Variable_39:0'].flatten()
 		bf = ref_weights_values['Variable_40:0'].flatten()
 		tmp = np.concatenate( (wf , bf) , axis=0)
@@ -530,7 +530,7 @@ with tf.Session() as sess:
 		for layer, weight_matrix in L_weights_values.items():
 			if layer not in ['Variable_39:0']:
 				w[layer] = weight_matrix.flatten().reshape(-1,1)
-			elif layer = 'Variable_39:0':
+			elif layer == 'Variable_39:0':
 				wf = L_weights_values['Variable_39:0'].flatten()
 				bf = L_weights_values['Variable_40:0'].flatten()
 				tmp = np.concatenate( (wf , bf) , axis=0)
@@ -590,7 +590,7 @@ with tf.Session() as sess:
 		for layer, _ in w.items():
 			if layer not in ['Variable_39:0']:
 				norm_compression += LA.norm(w[layer] - wC[layer])
-		elif layer = 'Variable_39:0':
+		elif layer == 'Variable_39:0':
 				norm_compression += LA.norm(w[layer][:ref_weights_values[layer].size] - wC[layer])
 
 		print('norm of compression: {} ' .format(norm_compression) )
