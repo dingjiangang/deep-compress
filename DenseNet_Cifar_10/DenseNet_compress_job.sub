@@ -17,4 +17,7 @@ source activate jacobenv
 python DenseNet_compress.py 2
 python DenseNet_compress.py 4
 python DenseNet_compress.py 8
+python DenseNet_compress.py 16
+python DenseNet_compress.py 32
+
 
