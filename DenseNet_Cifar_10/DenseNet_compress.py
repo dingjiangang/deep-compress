@@ -305,9 +305,9 @@ train_L_step = tf.train.MomentumOptimizer(lr, 0.9, use_nesterov=True).minimize(l
 # flatten the weights and concatenate bias for each layer
 w = {}
 for layer, weight_matrix in ref_weights_values.items():
-	if layer not in ['Variable_39:0','Variable_40:0']:
+	if layer not in ['Variable_39:0']:
 		w[layer] = weight_matrix.flatten().reshape(-1,1)
-	else:
+	elif layer = 'Variable_39:0':
 		wf = ref_weights_values['Variable_39:0'].flatten()
 		bf = ref_weights_values['Variable_40:0'].flatten()
 		tmp = np.concatenate( (wf , bf) , axis=0)
@@ -528,13 +528,14 @@ with tf.Session() as sess:
 		# flatten the weights and concatenate bias for each layer
 		w = {}
 		for layer, weight_matrix in L_weights_values.items():
-			if layer not in ['Variable_39:0','Variable_40:0']:
+			if layer not in ['Variable_39:0']:
 				w[layer] = weight_matrix.flatten().reshape(-1,1)
-			else:
+			elif layer = 'Variable_39:0':
 				wf = L_weights_values['Variable_39:0'].flatten()
 				bf = L_weights_values['Variable_40:0'].flatten()
 				tmp = np.concatenate( (wf , bf) , axis=0)
 				w[layer] = tmp.reshape(-1,1)
+
 
 		# dictionary to save the kmeans output for each layer 
 		kmeans = {}
