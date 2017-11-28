@@ -318,13 +318,13 @@ wC = {}
 
 # Kmeans
 for layer, _ in w.items():
-	wC[layer] = w[layer]
-	if ref_weights_values[layer].ndim != 1:
-		kmeans[layer] = KMeans(n_clusters=k, random_state=0).fit(w[layer])
-		C[layer] = kmeans[layer].cluster_centers_ 
-		Z[layer] = kmeans[layer].labels_
-		# quantize reference net
-		wC[layer]= C[layer][Z[layer]]
+	# wC[layer] = w[layer]
+	# if ref_weights_values[layer].ndim != 1:
+	kmeans[layer] = KMeans(n_clusters=k, random_state=0).fit(w[layer])
+	C[layer] = kmeans[layer].cluster_centers_ 
+	Z[layer] = kmeans[layer].labels_
+	# quantize reference net
+	wC[layer]= C[layer][Z[layer]]
 C_DC = C
 ###############################################################################
 ########################## DC = Kmeans(w_bar) #################################
@@ -527,13 +527,13 @@ with tf.Session() as sess:
 
 		# Kmeans
 		for layer, _ in w.items():
-			wC[layer] = w[layer]
-			if ref_weights_values[layer].ndim != 1:
-				kmeans[layer] = KMeans(n_clusters=k, random_state=0).fit(w[layer])
-				C[layer] = kmeans[layer].cluster_centers_ 
-				Z[layer] = kmeans[layer].labels_
-				# quantize reference net
-				wC[layer]= C[layer][Z[layer]]
+			#wC[layer] = w[layer]
+			#if ref_weights_values[layer].ndim != 1:
+			kmeans[layer] = KMeans(n_clusters=k, random_state=0).fit(w[layer])
+			C[layer] = kmeans[layer].cluster_centers_ 
+			Z[layer] = kmeans[layer].labels_
+			# quantize reference net
+			wC[layer]= C[layer][Z[layer]]
 
 		wC_reshape = {}
 		for layer, weight_matrix in wC.items():
