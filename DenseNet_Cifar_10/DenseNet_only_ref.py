@@ -12,7 +12,7 @@ def unpickle(file):
 	with open(file, 'rb') as fo:
 		dict_data = pickle.load(fo, encoding='bytes')
 	if b'data' in dict_data:
-		dict_data[b'data'] = dict_data[b'data'].reshape((-1, 3, 32, 32)).swapaxes(1, 3).swapaxes(1, 2) / 256.
+		dict_data[b'data'] = dict_data[b'data'].reshape((-1, 3, 32, 32)).swapaxes(1, 3).swapaxes(1, 2) / 256
 	return dict_data
 
 def load_data_one(f):
@@ -47,10 +47,33 @@ n_classes = len(label_names)
 train_files = [ 'data_batch_%d' % d for d in range(1, 6) ]
 train_data, train_labels = load_data(train_files, data_dir, n_classes)
 
+
 train_data, train_labels = shuffle(train_data, train_labels)
+
+X_test, y_test = load_data([ 'test_batch' ], data_dir, n_classes)
+X_test = X_test / 256
+
+# n_channel = 3
+# mean_channel = [0,0,0]
+# std_channel = [0,0,0]
+# for i in range(n_channel):
+# 	mean_channel[i] = np.mean(train_data[:,:,:,i])
+# 	std_channel[i] = np.std(train_data[:,:,:,i])
+# 	train_data[:,:,:,i] = train_data[:,:,:,i] - mean_channel[i]
+# 	train_data[:,:,:,i] = train_data[:,:,:,i] / std_channel[i]
+
+# n_channel = 3
+# mean_channel_test = [0,0,0]
+# std_channel_test = [0,0,0]
+# for i in range(n_channel):
+# 	mean_channel_test[i] = np.mean(X_test[:,:,:,i])
+# 	std_channel_test[i] = np.std(X_test[:,:,:,i])
+# 	X_test[:,:,:,i] = X_test[:,:,:,i] - mean_channel_test[i]
+# 	X_test[:,:,:,i] = X_test[:,:,:,i] / std_channel_test[i]
+
+
 X_train, X_validation, y_train, y_validation = \
 		train_test_split(train_data, train_labels, test_size=0.1)
-X_test, y_test = load_data([ 'test_batch' ], data_dir, n_classes)
 
 print("Train:", np.shape(X_train), np.shape(y_train))
 print("Validation: ", np.shape(X_validation), np.shape(y_validation))

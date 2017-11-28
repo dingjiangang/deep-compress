@@ -113,6 +113,7 @@ train_data, train_labels = shuffle(train_data, train_labels)
 X_train, X_validation, y_train, y_validation = \
 		train_test_split(train_data, train_labels, test_size=0.1)
 X_test, y_test = load_data([ 'test_batch' ], data_dir, n_classes)
+X_test = X_test / 256
 
 print("Train:", np.shape(X_train), np.shape(y_train))
 print("Validation: ", np.shape(X_validation), np.shape(y_validation))
@@ -327,13 +328,15 @@ wC = {}
 for layer, _ in w.items():
 	# wC[layer] = w[layer]
 	# if ref_weights_values[layer].ndim != 1:
-	kmeans[layer] = KMeans(n_clusters=k, random_state=0).fit(w[layer])
-	C[layer] = kmeans[layer].cluster_centers_ 
-	Z[layer] = kmeans[layer].labels_
-	# quantize reference net
 	if layer not in ['Variable_39:0','Variable_40:0']:
+		kmeans[layer] = KMeans(n_clusters=k, random_state=0).fit(w[layer])
+		C[layer] = kmeans[layer].cluster_centers_ 
+		Z[layer] = kmeans[layer].labels_
 		wC[layer]= C[layer][Z[layer]]
 	elif layer == 'Variable_39:0':
+		kmeans[layer] = KMeans(n_clusters=k, random_state=0).fit(w[layer])
+		C[layer] = kmeans[layer].cluster_centers_ 
+		Z[layer] = kmeans[layer].labels_
 		wC[layer] = C[layer][Z[layer][:ref_weights_values[layer].size]]
 	elif layer == 'Variable_40:0':
 		wC[layer] = C['Variable_39:0'][Z['Variable_39:0'][ref_weights_values['Variable_39:0'].size:]]
@@ -550,16 +553,33 @@ with tf.Session() as sess:
 		for layer, _ in w.items():
 			# wC[layer] = w[layer]
 			# if ref_weights_values[layer].ndim != 1:
-			kmeans[layer] = KMeans(n_clusters=k, random_state=0).fit(w[layer])
-			C[layer] = kmeans[layer].cluster_centers_ 
-			Z[layer] = kmeans[layer].labels_
-			# quantize reference net
 			if layer not in ['Variable_39:0','Variable_40:0']:
+				kmeans[layer] = KMeans(n_clusters=k, random_state=0).fit(w[layer])
+				C[layer] = kmeans[layer].cluster_centers_ 
+				Z[layer] = kmeans[layer].labels_
 				wC[layer]= C[layer][Z[layer]]
 			elif layer == 'Variable_39:0':
+				kmeans[layer] = KMeans(n_clusters=k, random_state=0).fit(w[layer])
+				C[layer] = kmeans[layer].cluster_centers_ 
+				Z[layer] = kmeans[layer].labels_
 				wC[layer] = C[layer][Z[layer][:ref_weights_values[layer].size]]
 			elif layer == 'Variable_40:0':
 				wC[layer] = C['Variable_39:0'][Z['Variable_39:0'][ref_weights_values['Variable_39:0'].size:]]
+
+		# Kmeans
+		# for layer, _ in w.items():
+		# 	# wC[layer] = w[layer]
+		# 	# if ref_weights_values[layer].ndim != 1:
+		# 	kmeans[layer] = KMeans(n_clusters=k, random_state=0).fit(w[layer])
+		# 	C[layer] = kmeans[layer].cluster_centers_ 
+		# 	Z[layer] = kmeans[layer].labels_
+		# 	# quantize reference net
+		# 	if layer not in ['Variable_39:0','Variable_40:0']:
+		# 		wC[layer]= C[layer][Z[layer]]
+		# 	elif layer == 'Variable_39:0':
+		# 		wC[layer] = C[layer][Z[layer][:ref_weights_values[layer].size]]
+		# 	elif layer == 'Variable_40:0':
+		# 		wC[layer] = C['Variable_39:0'][Z['Variable_39:0'][ref_weights_values['Variable_39:0'].size:]]
 
 		wC_reshape = {}
 		for layer, weight_matrix in wC.items():
