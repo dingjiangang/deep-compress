@@ -13,8 +13,8 @@ print('---------------------------------------------------')
 print('LOADING MY PRETRAINED REFERENCE NET for DenseNet-40')
 print('---------------------------------------------------')
 ################### TO LOAD MODEL #############################################
-model_file_path = './densenet_300.ckpt'
-model_file_meta = './densenet_300.ckpt.meta'
+model_file_path = './densenet_150.ckpt'
+model_file_meta = './densenet_150.ckpt.meta'
 ############################## LOAD weights and biases ########################
 ref_variables = {}
 ref_values = {}
@@ -367,8 +367,8 @@ with tf.Session() as sess:
 		feed_dict.update({ w_init_placeholder[layer]: wC_reshape[layer] })
 	sess.run(w_init,feed_dict=feed_dict)
 	test_results = run_in_batch_avg(sess,[cross_entropy,accuracy],[x,y],
- 				feed_dict = { 	x: data['test-data'], 
- 								y: data['test-labels'], 
+ 				feed_dict = { 	x: data['validation-data'], 
+ 								y: data['validation-labels'], 
  								is_training: False, 
  								keep_prob: 1. })
 	print('test results for DC: ', test_results)
@@ -381,8 +381,8 @@ with tf.Session() as sess:
 # mu parameters
 mu_0 = 0.001
 a = 2.0
-max_iter_each_L_step = 1000
-LC_epoches = 21
+max_iter_each_L_step = 10
+LC_epoches = 1
 batch_size = 64
 minibatch = batch_size
 batch_count = len(X_train) // batch_size
@@ -496,11 +496,11 @@ with tf.Session() as sess:
 				print('L epoch: {}, val loss: {}, val error: {}' \
 							.format(epoch, val_loss_L[epoch], val_error_L[epoch]) )
 
-		feed_dict.update({ 	x: data['test-data'], 
-								y: data['test-labels'], 
-								is_training: False, 
-								keep_prob: 1.,
-								mu_tf: mu })
+		feed_dict.update({ 	x: data['validation-data'], 
+							y: data['validation-labels'], 
+							is_training: False, 
+							keep_prob: 1.,
+							mu_tf: mu })
 		test_results = run_in_batch_avg(sess,[loss_L_step,accuracy],[x,y],
 								feed_dict=feed_dict)
 				
@@ -572,8 +572,8 @@ with tf.Session() as sess:
 			feed_dict.update({ w_init_placeholder[layer]: wC_reshape[layer] })
 		sess.run(w_init,feed_dict=feed_dict)
 		test_results = run_in_batch_avg(sess,[cross_entropy,accuracy],[x,y],
- 				feed_dict = { 	x: data['test-data'], 
- 								y: data['test-labels'], 
+ 				feed_dict = { 	x: data['validation-data'], 
+ 								y: data['validation-labels'], 
  								is_training: False, 
  								keep_prob: 1. })
 		print('test results for C: ', test_results)
